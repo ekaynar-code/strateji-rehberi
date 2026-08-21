@@ -6,9 +6,11 @@ import Link from "next/link";
 import RequireAuth from "@/components/RequireAuth";
 import TopBar from "@/components/TopBar";
 import PanelTabs from "@/components/PanelTabs";
+import ManuelCiroBolumu from "@/components/ManuelCiroBolumu";
 import {
   subscribeDistributors,
   type Distributor,
+  type ParaBirimi,
   BOLGE_LABEL,
 } from "@/lib/distributors";
 import {
@@ -21,6 +23,12 @@ import { haberleriGetir, type HaberOgesi } from "@/lib/haberler";
 import { subscribeTodos, todoKalanGun, type Todo } from "@/lib/todos";
 import { subscribeHedef, hedefKaydet, type Hedef } from "@/lib/hedefler";
 import { kurlariGetir, tryyeCevir, type KurVeri } from "@/lib/kurlar";
+import {
+  subscribeManuelCiro,
+  manuelCiroEkle,
+  manuelCiroSil,
+  type ManuelCiroKaydi,
+} from "@/lib/manuelCiro";
 
 export default function GenelBakisPage() {
   return (
@@ -49,6 +57,16 @@ function GenelBakisContent() {
   const [kur, setKur] = useState<KurVeri>({ usdTry: null, eurTry: null });
   const [hedefDuzenle, setHedefDuzenle] = useState(false);
   const [hedefGirisi, setHedefGirisi] = useState("");
+  const [manuelKayitlar, setManuelKayitlar] = useState<ManuelCiroKaydi[]>([]);
+  const [manuelFormAcik, setManuelFormAcik] = useState(false);
+
+  useEffect(() => {
+    const unsub = subscribeManuelCiro(
+      (data) => setManuelKayitlar(data),
+      () => {}
+    );
+    return () => unsub();
+  }, []);
 
   useEffect(() => {
     const unsub = subscribeHedef(
@@ -208,13 +226,20 @@ function GenelBakisContent() {
   }, [distributorler]);
 
   const gerceklesenCiroTry = useMemo(() => {
-    return distributorler
+    const firsatlardanGelen = distributorler
       .filter((d) => d.durum === "anlasma" && d.tahminiCiro && d.tahminiCiroParaBirimi)
       .reduce((toplam, d) => {
         const tryDegeri = tryyeCevir(d.tahminiCiro!, d.tahminiCiroParaBirimi!, kur);
         return toplam + (tryDegeri ?? 0);
       }, 0);
-  }, [distributorler, kur]);
+
+    const manuelGelen = manuelKayitlar.reduce((toplam, m) => {
+      const tryDegeri = tryyeCevir(m.tutar, m.paraBirimi, kur);
+      return toplam + (tryDegeri ?? 0);
+    }, 0);
+
+    return firsatlardanGelen + manuelGelen;
+  }, [distributorler, manuelKayitlar, kur]);
 
   const hedefYuzde = hedef ? Math.min(100, Math.round((gerceklesenCiroTry / hedef.hedefTry) * 100)) : 0;
 
@@ -286,7 +311,7 @@ function GenelBakisContent() {
                   <span className="font-medium text-brand-600">%{hedefYuzde}</span>
                 </div>
                 <p className="mt-1 text-xs text-gray-400">
-                  Yurt içi ve ihracat anlaşmaları güncel kurdan TRY'ye çevrilerek toplanır.
+                  Satış fırsatlarındaki anlaşmalar ve manuel kayıtlar güncel kurdan TRY&apos;ye çevrilerek toplanır.
                 </p>
               </>
             ) : (
@@ -296,24 +321,42 @@ function GenelBakisContent() {
             )}
           </div>
 
+          <ManuelCiroBolumu
+            kayitlar={manuelKayitlar}
+            acik={manuelFormAcik}
+            onAcikDegistir={setManuelFormAcik}
+          />
+
           {/* KPI kartları */}
           <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <div className="rounded-xl border border-gray-200 bg-white p-4">
-              <div className="text-xs text-gray-500">Toplam distribütör kaydı</div>
+            <button
+              onClick={() => router.push("/panel/distributorler")}
+              className="rounded-xl border border-gray-200 bg-white p-4 text-left transition hover:border-brand-300 hover:bg-brand-50/30"
+            >
+              <div className="text-xs text-gray-500">Toplam satış fırsatı</div>
               <div className="mt-1 text-2xl font-medium text-gray-900">{distributorler.length}</div>
-            </div>
-            <div className="rounded-xl border border-gray-200 bg-white p-4">
+            </button>
+            <button
+              onClick={() => router.push("/panel/distributorler")}
+              className="rounded-xl border border-gray-200 bg-white p-4 text-left transition hover:border-brand-300 hover:bg-brand-50/30"
+            >
               <div className="text-xs text-gray-500">Aktif görüşme</div>
               <div className="mt-1 text-2xl font-medium text-gray-900">{aktifGorusmeler}</div>
-            </div>
-            <div className="rounded-xl border border-gray-200 bg-white p-4">
+            </button>
+            <button
+              onClick={() => router.push("/panel/distributorler")}
+              className="rounded-xl border border-gray-200 bg-white p-4 text-left transition hover:border-brand-300 hover:bg-brand-50/30"
+            >
               <div className="text-xs text-gray-500">Anlaşma sağlanan</div>
               <div className="mt-1 text-2xl font-medium text-green-700">{anlasmaSayisi}</div>
-            </div>
-            <div className="rounded-xl border border-gray-200 bg-white p-4">
+            </button>
+            <button
+              onClick={() => router.push("/panel/fuarlar")}
+              className="rounded-xl border border-gray-200 bg-white p-4 text-left transition hover:border-brand-300 hover:bg-brand-50/30"
+            >
               <div className="text-xs text-gray-500">30 gün içindeki fuar</div>
               <div className="mt-1 text-2xl font-medium text-amber-700">{yaklasanFuarlar.length}</div>
-            </div>
+            </button>
           </div>
 
           {/* Piyasa Nabzı özeti */}
@@ -346,7 +389,7 @@ function GenelBakisContent() {
           {/* Bölge dağılımı */}
           {distributorler.length > 0 && (
             <div className="mb-6 rounded-xl border border-gray-200 bg-white p-4">
-              <div className="mb-3 text-sm font-medium text-gray-700">Bölge dağılımı — distribütör kayıtları</div>
+              <div className="mb-3 text-sm font-medium text-gray-700">Bölge dağılımı — satış fırsatları</div>
               <div className="flex flex-wrap gap-4">
                 {Object.entries(BOLGE_LABEL).map(([key, label]) => (
                   <div key={key} className="flex items-baseline gap-1.5">
@@ -440,7 +483,7 @@ function GenelBakisContent() {
             )}
           </div>
 
-          {/* Yanıt bekleyen distribütörler */}
+          {/* Yanıt bekleyen fırsatlar */}
           <div>
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-sm font-medium text-gray-700">Yanıt bekleyen görüşmeler</h2>

@@ -58,7 +58,7 @@ function PanelContent() {
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-lg font-medium text-gray-900">
-            Distribütör ve tedarikçi ortağı takibi
+            Satış Fırsatları
           </h1>
           <p className="text-sm text-gray-500">
             {items.length} kayıt · {filtered.length} gösteriliyor
@@ -116,7 +116,7 @@ function PanelContent() {
         <div className="rounded-xl border border-dashed border-gray-300 p-8 text-center">
           <p className="text-sm text-gray-500">
             {items.length === 0
-              ? "Henüz kayıt yok. İlk distribütör/tedarikçi ortağı adayını ekleyin."
+              ? "Henüz kayıt yok. İlk satış fırsatını ekleyin."
               : "Bu bölgede kayıt yok."}
           </p>
         </div>
