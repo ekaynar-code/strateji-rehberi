@@ -61,16 +61,26 @@ export function subscribeFuarlar(
 }
 
 export async function addFuar(data: Omit<Fuar, "id" | "createdAt" | "updatedAt">) {
+  const temiz: Record<string, unknown> = {};
+  Object.entries(data).forEach(([key, value]) => {
+    if (value !== undefined) temiz[key] = value;
+  });
+
   await addDoc(collection(db, COLLECTION), {
-    ...data,
+    ...temiz,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
 }
 
 export async function updateFuar(id: string, data: Partial<Omit<Fuar, "id">>) {
+  const temiz: Record<string, unknown> = {};
+  Object.entries(data).forEach(([key, value]) => {
+    if (value !== undefined) temiz[key] = value;
+  });
+
   await updateDoc(doc(db, COLLECTION, id), {
-    ...data,
+    ...temiz,
     updatedAt: serverTimestamp(),
   });
 }

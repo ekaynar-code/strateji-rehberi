@@ -42,7 +42,7 @@ export async function addTodo(baslik: string, ekleyen?: string) {
   await addDoc(collection(db, COLLECTION), {
     baslik,
     tamamlandi: false,
-    ekleyen: ekleyen || undefined,
+    ...(ekleyen ? { ekleyen } : {}),
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });

@@ -70,16 +70,28 @@ export function subscribeDistributors(
 }
 
 export async function addDistributor(data: Omit<Distributor, "id" | "createdAt" | "updatedAt">) {
+  // Firestore, alan değeri olarak `undefined` kabul etmez — boş/tanımsız
+  // opsiyonel alanları objeden tamamen çıkarıyoruz.
+  const temiz: Record<string, unknown> = {};
+  Object.entries(data).forEach(([key, value]) => {
+    if (value !== undefined) temiz[key] = value;
+  });
+
   await addDoc(collection(db, COLLECTION), {
-    ...data,
+    ...temiz,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
 }
 
 export async function updateDistributor(id: string, data: Partial<Omit<Distributor, "id">>) {
+  const temiz: Record<string, unknown> = {};
+  Object.entries(data).forEach(([key, value]) => {
+    if (value !== undefined) temiz[key] = value;
+  });
+
   await updateDoc(doc(db, COLLECTION, id), {
-    ...data,
+    ...temiz,
     updatedAt: serverTimestamp(),
   });
 }
