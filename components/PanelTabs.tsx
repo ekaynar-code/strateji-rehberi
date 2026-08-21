@@ -7,6 +7,7 @@ const SEKMELER = [
   { href: "/panel", label: "Genel Bakış" },
   { href: "/panel/distributorler", label: "Distribütörler" },
   { href: "/panel/fuarlar", label: "Fuarlar" },
+  { href: "/panel/piyasa-nabzi", label: "Piyasa Nabzı" },
   { href: "/panel/yapilacaklar", label: "Yapılacaklar" },
 ];
 
