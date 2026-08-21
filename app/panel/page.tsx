@@ -7,6 +7,7 @@ import RequireAuth from "@/components/RequireAuth";
 import TopBar from "@/components/TopBar";
 import PanelTabs from "@/components/PanelTabs";
 import ManuelCiroBolumu from "@/components/ManuelCiroBolumu";
+import AksiyonListesi from "@/components/AksiyonListesi";
 import {
   subscribeDistributors,
   type Distributor,
@@ -29,6 +30,7 @@ import {
   manuelCiroSil,
   type ManuelCiroKaydi,
 } from "@/lib/manuelCiro";
+import { aksiyonlariHesapla } from "@/lib/aksiyonMotoru";
 
 export default function GenelBakisPage() {
   return (
@@ -243,6 +245,19 @@ function GenelBakisContent() {
 
   const hedefYuzde = hedef ? Math.min(100, Math.round((gerceklesenCiroTry / hedef.hedefTry) * 100)) : 0;
 
+  const aksiyonOnerileri = useMemo(
+    () =>
+      aksiyonlariHesapla({
+        distributorler,
+        fuarlar,
+        todos,
+        onemliHaberler,
+        hedef,
+        gerceklesenCiroTry,
+      }),
+    [distributorler, fuarlar, todos, onemliHaberler, hedef, gerceklesenCiroTry]
+  );
+
   return (
     <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-5 sm:py-6">
       <div className="mb-5">
@@ -254,6 +269,8 @@ function GenelBakisContent() {
         <p className="text-sm text-gray-500">Yükleniyor…</p>
       ) : (
         <>
+          <AksiyonListesi oneriler={aksiyonOnerileri} />
+
           {/* Yıllık ciro hedefi */}
           <div className="mb-6 rounded-xl border border-gray-200 bg-white p-4">
             <div className="mb-2 flex items-center justify-between">
