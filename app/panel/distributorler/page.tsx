@@ -7,6 +7,7 @@ import PanelTabs from "@/components/PanelTabs";
 import DistributorForm from "@/components/DistributorForm";
 import DistributorCard from "@/components/DistributorCard";
 import CsvIceAktarForm from "@/components/CsvIceAktarForm";
+import KanbanPano from "@/components/KanbanPano";
 import {
   subscribeDistributors,
   type Distributor,
@@ -33,6 +34,7 @@ function PanelContent() {
   const [showForm, setShowForm] = useState(false);
   const [showCsvForm, setShowCsvForm] = useState(false);
   const [bolgeFiltre, setBolgeFiltre] = useState<Bolge | "hepsi">("hepsi");
+  const [gorunum, setGorunum] = useState<"liste" | "kanban">("liste");
 
   useEffect(() => {
     const unsubscribe = subscribeDistributors(
@@ -72,7 +74,25 @@ function PanelContent() {
         </button>
       </div>
 
-      <div className="mb-5 flex justify-end">
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
+        <div className="flex gap-1 rounded-lg border border-gray-200 bg-gray-50 p-1">
+          <button
+            onClick={() => setGorunum("liste")}
+            className={`rounded-md px-3 py-1 text-sm font-medium transition ${
+              gorunum === "liste" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"
+            }`}
+          >
+            Liste
+          </button>
+          <button
+            onClick={() => setGorunum("kanban")}
+            className={`rounded-md px-3 py-1 text-sm font-medium transition ${
+              gorunum === "kanban" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"
+            }`}
+          >
+            Kanban
+          </button>
+        </div>
         <button
           onClick={() => setShowCsvForm((s) => !s)}
           className="text-sm text-gray-500 underline decoration-dotted hover:text-brand-500"
@@ -122,11 +142,17 @@ function PanelContent() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        {filtered.map((item) => (
-          <DistributorCard key={item.id} item={item} />
-        ))}
-      </div>
+      {!loading && !error && filtered.length > 0 && (
+        gorunum === "kanban" ? (
+          <KanbanPano items={filtered} />
+        ) : (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {filtered.map((item) => (
+              <DistributorCard key={item.id} item={item} />
+            ))}
+          </div>
+        )
+      )}
     </main>
   );
 }
