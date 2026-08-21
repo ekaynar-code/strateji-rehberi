@@ -87,18 +87,18 @@ const PROXY_STRATEJILERI: ((rssUrl: string) => Promise<string>)[] = [
     return data.contents as string;
   },
   async (rssUrl) => {
+    const res = await fetchWithTimeout(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(rssUrl)}`);
+    if (!res.ok) throw new Error("codetabs başarısız");
+    return await res.text();
+  },
+  async (rssUrl) => {
     const res = await fetchWithTimeout(`https://api.allorigins.win/raw?url=${encodeURIComponent(rssUrl)}`);
     if (!res.ok) throw new Error("allorigins raw başarısız");
     return await res.text();
   },
   async (rssUrl) => {
-    const res = await fetchWithTimeout(`https://corsproxy.io/?url=${encodeURIComponent(rssUrl)}`);
-    if (!res.ok) throw new Error("corsproxy.io başarısız");
-    return await res.text();
-  },
-  async (rssUrl) => {
-    const res = await fetchWithTimeout(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(rssUrl)}`);
-    if (!res.ok) throw new Error("codetabs başarısız");
+    const res = await fetchWithTimeout(`https://thingproxy.freeboard.io/fetch/${rssUrl}`);
+    if (!res.ok) throw new Error("thingproxy başarısız");
     return await res.text();
   },
 ];
@@ -144,6 +144,9 @@ export async function haberleriGetir(
       return sonuc;
     } catch (err) {
       sonHata = err;
+      if (typeof window !== "undefined") {
+        console.warn(`[haberler] proxy denemesi başarısız (${sorgu}):`, err);
+      }
       // Bu proxy başarısız oldu, sıradakini dene.
       continue;
     }
