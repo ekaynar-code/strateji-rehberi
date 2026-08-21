@@ -18,6 +18,7 @@ import {
 } from "@/lib/fuarlar";
 import { subscribeHaberSorgulari, type HaberSorgusu } from "@/lib/haberSorgulari";
 import { haberleriGetir, type HaberOgesi } from "@/lib/haberler";
+import { subscribeTodos, todoKalanGun, type Todo } from "@/lib/todos";
 
 export default function GenelBakisPage() {
   return (
@@ -38,6 +39,7 @@ function GenelBakisContent() {
   const router = useRouter();
   const [distributorler, setDistributorler] = useState<Distributor[]>([]);
   const [fuarlar, setFuarlar] = useState<Fuar[]>([]);
+  const [todos, setTodos] = useState<Todo[]>([]);
   const [loading, setLoading] = useState(true);
   const [onemliHaberler, setOnemliHaberler] = useState<HaberOgesi[]>([]);
   const [haberYukleniyor, setHaberYukleniyor] = useState(true);
@@ -45,8 +47,9 @@ function GenelBakisContent() {
   useEffect(() => {
     let d1 = false;
     let d2 = false;
+    let d3 = false;
     const checkDone = () => {
-      if (d1 && d2) setLoading(false);
+      if (d1 && d2 && d3) setLoading(false);
     };
 
     const unsub1 = subscribeDistributors(
@@ -71,10 +74,22 @@ function GenelBakisContent() {
         checkDone();
       }
     );
+    const unsub3 = subscribeTodos(
+      (data) => {
+        setTodos(data);
+        d3 = true;
+        checkDone();
+      },
+      () => {
+        d3 = true;
+        checkDone();
+      }
+    );
 
     return () => {
       unsub1();
       unsub2();
+      unsub3();
     };
   }, []);
 
@@ -139,6 +154,15 @@ function GenelBakisContent() {
   const uzunSureYanitBekleyenler = useMemo(
     () => distributorler.filter((d) => d.durum === "yanit_bekleniyor"),
     [distributorler]
+  );
+
+  const yaklasanGorevler = useMemo(
+    () =>
+      todos
+        .filter((t) => !t.tamamlandi && t.sonTarih)
+        .sort((a, b) => todoKalanGun(a.sonTarih!) - todoKalanGun(b.sonTarih!))
+        .slice(0, 3),
+    [todos]
   );
 
   const bolgeDagilimi = useMemo(() => {
@@ -253,6 +277,51 @@ function GenelBakisContent() {
                         {gun === 0 ? "bugün" : `${gun} gün kaldı`}
                       </span>
                     </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Yaklaşan görevler */}
+          <div className="mb-6">
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-sm font-medium text-gray-700">Yaklaşan görevler</h2>
+              <Link href="/panel/yapilacaklar" className="text-sm text-gray-500 hover:text-gray-900 hover:underline">
+                Tümünü gör
+              </Link>
+            </div>
+            {yaklasanGorevler.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500">
+                Son tarihi olan bekleyen görev yok.
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {yaklasanGorevler.map((t) => {
+                  const gun = todoKalanGun(t.sonTarih!);
+                  const gecmis = gun < 0;
+                  const yaklasiyor = gun >= 0 && gun <= 7;
+                  return (
+                    <Link
+                      key={t.id}
+                      href="/panel/yapilacaklar"
+                      className={`flex flex-col gap-1 rounded-xl border p-3 transition hover:bg-gray-50 sm:flex-row sm:items-center sm:justify-between ${
+                        gecmis ? "border-red-200 bg-red-50/40" : yaklasiyor ? "border-brand-200 bg-brand-50/40" : "border-gray-200 bg-white"
+                      }`}
+                    >
+                      <span className="font-medium text-gray-900">{t.baslik}</span>
+                      <span
+                        className={`w-fit rounded-full px-2.5 py-1 text-xs font-medium ${
+                          gecmis
+                            ? "bg-red-100 text-red-700"
+                            : yaklasiyor
+                              ? "bg-brand-100 text-brand-600"
+                              : "bg-gray-100 text-gray-500"
+                        }`}
+                      >
+                        {gecmis ? "süresi geçti" : gun === 0 ? "bugün" : `${gun} gün kaldı`}
+                      </span>
+                    </Link>
                   );
                 })}
               </div>

@@ -5,7 +5,7 @@ import RequireAuth from "@/components/RequireAuth";
 import TopBar from "@/components/TopBar";
 import PanelTabs from "@/components/PanelTabs";
 import { useAuth } from "@/lib/AuthContext";
-import { subscribeTodos, addTodo, toggleTodo, deleteTodo, type Todo } from "@/lib/todos";
+import { subscribeTodos, addTodo, toggleTodo, deleteTodo, todoKalanGun, type Todo } from "@/lib/todos";
 
 export default function YapilacaklarPage() {
   return (
@@ -17,12 +17,18 @@ export default function YapilacaklarPage() {
   );
 }
 
+function formatTarih(tarih: string): string {
+  const d = new Date(tarih + "T00:00:00");
+  return d.toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" });
+}
+
 function YapilacaklarContent() {
   const { user } = useAuth();
   const [items, setItems] = useState<Todo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [yeniBaslik, setYeniBaslik] = useState("");
+  const [yeniSonTarih, setYeniSonTarih] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -47,8 +53,9 @@ function YapilacaklarContent() {
     if (!yeniBaslik.trim()) return;
     setSubmitting(true);
     try {
-      await addTodo(yeniBaslik.trim(), user?.email || undefined);
+      await addTodo(yeniBaslik.trim(), user?.email || undefined, yeniSonTarih || undefined);
       setYeniBaslik("");
+      setYeniSonTarih("");
     } finally {
       setSubmitting(false);
     }
@@ -63,12 +70,19 @@ function YapilacaklarContent() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="mb-6 flex gap-2">
+      <form onSubmit={handleSubmit} className="mb-6 flex flex-col gap-2 sm:flex-row">
         <input
           value={yeniBaslik}
           onChange={(e) => setYeniBaslik(e.target.value)}
           placeholder="Yeni görev ekle…"
           className="flex-1 rounded-lg border border-gray-300 px-3 py-2.5 text-base outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 sm:text-sm"
+        />
+        <input
+          type="date"
+          value={yeniSonTarih}
+          onChange={(e) => setYeniSonTarih(e.target.value)}
+          aria-label="Son tarih (opsiyonel)"
+          className="shrink-0 rounded-lg border border-gray-300 px-3 py-2.5 text-base text-gray-700 outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 sm:text-sm"
         />
         <button
           type="submit"
@@ -133,6 +147,10 @@ function TodoRow({ item }: { item: Todo }) {
     }
   }
 
+  const gun = item.sonTarih ? todoKalanGun(item.sonTarih) : null;
+  const gecmis = gun !== null && gun < 0 && !item.tamamlandi;
+  const yaklasiyor = gun !== null && gun >= 0 && gun <= 7 && !item.tamamlandi;
+
   return (
     <div
       className={`flex items-center gap-3 rounded-xl border p-3 ${
@@ -156,9 +174,21 @@ function TodoRow({ item }: { item: Todo }) {
         )}
       </button>
 
-      <span className={`flex-1 text-sm ${item.tamamlandi ? "text-gray-400 line-through" : "text-gray-900"}`}>
-        {item.baslik}
-      </span>
+      <div className="flex-1 min-w-0">
+        <span className={`text-sm ${item.tamamlandi ? "text-gray-400 line-through" : "text-gray-900"}`}>
+          {item.baslik}
+        </span>
+        {item.sonTarih && (
+          <span
+            className={`ml-2 text-xs ${
+              gecmis ? "font-medium text-red-600" : yaklasiyor ? "font-medium text-brand-500" : "text-gray-400"
+            }`}
+          >
+            {formatTarih(item.sonTarih)}
+            {gecmis && " · süresi geçti"}
+          </span>
+        )}
+      </div>
 
       <button
         onClick={handleDelete}

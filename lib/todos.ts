@@ -17,6 +17,7 @@ export interface Todo {
   baslik: string;
   tamamlandi: boolean;
   ekleyen?: string;
+  sonTarih?: string; // YYYY-MM-DD formatında, opsiyonel deadline
   createdAt?: Timestamp;
   updatedAt?: Timestamp;
 }
@@ -38,11 +39,12 @@ export function subscribeTodos(
   );
 }
 
-export async function addTodo(baslik: string, ekleyen?: string) {
+export async function addTodo(baslik: string, ekleyen?: string, sonTarih?: string) {
   await addDoc(collection(db, COLLECTION), {
     baslik,
     tamamlandi: false,
     ...(ekleyen ? { ekleyen } : {}),
+    ...(sonTarih ? { sonTarih } : {}),
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
@@ -57,4 +59,13 @@ export async function toggleTodo(id: string, tamamlandi: boolean) {
 
 export async function deleteTodo(id: string) {
   await deleteDoc(doc(db, COLLECTION, id));
+}
+
+/** Bugünden itibaren kalan gün sayısı (negatifse geçmiş demektir). */
+export function todoKalanGun(sonTarih: string): number {
+  const hedef = new Date(sonTarih + "T00:00:00");
+  const bugun = new Date();
+  bugun.setHours(0, 0, 0, 0);
+  const fark = hedef.getTime() - bugun.getTime();
+  return Math.round(fark / (1000 * 60 * 60 * 24));
 }

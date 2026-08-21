@@ -63,7 +63,7 @@ function PiyasaNabziContent() {
     Promise.all(VARSAYILAN_SORGULAR.map((s) => addHaberSorgusu(s.baslik, s.sorgu))).catch(() => {});
   }, [sorgularYukleniyor, sorgular.length, ilkKurulumYapiliyor]);
 
-  const tumHaberleriYenile = useCallback(async () => {
+  const tumHaberleriYenile = useCallback(async (zorlaYenile = false) => {
     if (sorgular.length === 0) return;
     setHaberYukleniyor(true);
     const yeniHatalar: Record<string, boolean> = {};
@@ -72,7 +72,7 @@ function PiyasaNabziContent() {
     await Promise.all(
       sorgular.map(async (s) => {
         try {
-          yeniHaberler[s.id] = await haberleriGetir(s.sorgu, s.baslik);
+          yeniHaberler[s.id] = await haberleriGetir(s.sorgu, s.baslik, zorlaYenile);
         } catch {
           yeniHatalar[s.id] = true;
         }
@@ -124,7 +124,7 @@ function PiyasaNabziContent() {
         </div>
         <div className="flex gap-2">
           <button
-            onClick={tumHaberleriYenile}
+            onClick={() => tumHaberleriYenile(true)}
             disabled={haberYukleniyor}
             className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
           >
