@@ -63,7 +63,7 @@ function parseXmlItems(xmlText: string): { title: string; link: string; pubDate:
 
 // Her proxy denemesine makul bir zaman aşımı koyuyoruz — yanıt vermeyen bir
 // proxy'de sonsuza kadar beklemek yerine hızlıca bir sonrakine geçilir.
-const PROXY_TIMEOUT_MS = 6000;
+const PROXY_TIMEOUT_MS = 9000;
 
 async function fetchWithTimeout(url: string, timeoutMs = PROXY_TIMEOUT_MS): Promise<Response> {
   const controller = new AbortController();
@@ -78,14 +78,11 @@ async function fetchWithTimeout(url: string, timeoutMs = PROXY_TIMEOUT_MS): Prom
 // Birden fazla ücretsiz CORS proxy servisi tanımlıyoruz; biri geçici olarak
 // çöktüğünde/yavaş kaldığında diğerine otomatik geçilir. Her fonksiyon,
 // verilen RSS URL'sinden ham XML metnini döndürür.
+//
+// NOT: Bu tür ücretsiz, anahtarsız servisler sık değişiyor — bazıları artık
+// yalnızca localhost/development origin'lerine izin veriyor (corsproxy.io gibi),
+// bazıları tamamen kapanmış olabilir. Bu liste zaman içinde güncellenmelidir.
 const PROXY_STRATEJILERI: ((rssUrl: string) => Promise<string>)[] = [
-  async (rssUrl) => {
-    const res = await fetchWithTimeout(`https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}`);
-    if (!res.ok) throw new Error("allorigins get başarısız");
-    const data = await res.json();
-    if (!data?.contents) throw new Error("allorigins get boş içerik");
-    return data.contents as string;
-  },
   async (rssUrl) => {
     const res = await fetchWithTimeout(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(rssUrl)}`);
     if (!res.ok) throw new Error("codetabs başarısız");
@@ -97,9 +94,16 @@ const PROXY_STRATEJILERI: ((rssUrl: string) => Promise<string>)[] = [
     return await res.text();
   },
   async (rssUrl) => {
-    const res = await fetchWithTimeout(`https://thingproxy.freeboard.io/fetch/${rssUrl}`);
-    if (!res.ok) throw new Error("thingproxy başarısız");
+    const res = await fetchWithTimeout(`https://api.cors.lol/?url=${encodeURIComponent(rssUrl)}`);
+    if (!res.ok) throw new Error("cors.lol başarısız");
     return await res.text();
+  },
+  async (rssUrl) => {
+    const res = await fetchWithTimeout(`https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}`);
+    if (!res.ok) throw new Error("allorigins get başarısız");
+    const data = await res.json();
+    if (!data?.contents) throw new Error("allorigins get boş içerik");
+    return data.contents as string;
   },
 ];
 
