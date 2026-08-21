@@ -14,7 +14,7 @@ import {
   BOLGE_LABEL,
 } from "@/lib/distributors";
 
-const BOLGE_FILTRELERI: (Bolge | "hepsi")[] = ["hepsi", "korfez", "balkanlar", "afrika"];
+const BOLGE_FILTRELERI: (Bolge | "hepsi")[] = ["hepsi", "turkiye", "korfez", "balkanlar", "afrika"];
 
 export default function PanelPage() {
   return (

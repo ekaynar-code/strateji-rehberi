@@ -12,9 +12,10 @@ import {
 } from "firebase/firestore";
 import { db } from "./firebase";
 
-export type Bolge = "korfez" | "balkanlar" | "afrika";
+export type Bolge = "korfez" | "balkanlar" | "afrika" | "turkiye";
 export type Profil = "distributor" | "fitout" | "uretici" | "diger";
 export type Durum = "arastirmada" | "temas_edildi" | "yanit_bekleniyor" | "gorusme_planlandi" | "anlasma" | "olumsuz";
+export type ParaBirimi = "TRY" | "USD" | "EUR";
 
 export interface Distributor {
   id: string;
@@ -26,11 +27,15 @@ export interface Distributor {
   iletisimKisisi?: string;
   iletisimBilgisi?: string;
   notlar?: string;
+  tahminiCiro?: number; // anlaşma durumunda tahmini yıllık ciro (girilen para biriminde)
+  tahminiCiroParaBirimi?: ParaBirimi;
+  kayipSebebi?: string; // durum "olumsuz" olduğunda opsiyonel not
   createdAt?: Timestamp;
   updatedAt?: Timestamp;
 }
 
 export const BOLGE_LABEL: Record<Bolge, string> = {
+  turkiye: "Türkiye (yurt içi)",
   korfez: "Körfez / Orta Doğu",
   balkanlar: "Balkanlar / Doğu Avrupa",
   afrika: "Afrika",

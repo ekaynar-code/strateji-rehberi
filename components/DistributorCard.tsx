@@ -9,6 +9,7 @@ import {
   updateDistributor,
   deleteDistributor,
   type Durum,
+  type ParaBirimi,
 } from "@/lib/distributors";
 
 const DURUM_RENK: Record<Durum, string> = {
@@ -20,14 +21,45 @@ const DURUM_RENK: Record<Durum, string> = {
   olumsuz: "bg-red-50 text-red-700",
 };
 
+const PARA_BIRIMLERI: ParaBirimi[] = ["TRY", "USD", "EUR"];
+const PARA_SEMBOLU: Record<ParaBirimi, string> = { TRY: "₺", USD: "$", EUR: "€" };
+
+function formatTutar(deger: number, paraBirimi: ParaBirimi): string {
+  return `${PARA_SEMBOLU[paraBirimi]}${deger.toLocaleString("tr-TR", { maximumFractionDigits: 0 })}`;
+}
+
 export default function DistributorCard({ item }: { item: Distributor }) {
   const [busy, setBusy] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [ciroGirisi, setCiroGirisi] = useState(item.tahminiCiro?.toString() || "");
+  const [paraBirimiGirisi, setParaBirimiGirisi] = useState<ParaBirimi>(item.tahminiCiroParaBirimi || "TRY");
+  const [kayipGirisi, setKayipGirisi] = useState(item.kayipSebebi || "");
 
   async function handleDurumChange(yeniDurum: Durum) {
     setBusy(true);
     try {
       await updateDistributor(item.id, { durum: yeniDurum });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleCiroKaydet() {
+    const sayi = parseFloat(ciroGirisi);
+    if (isNaN(sayi) || sayi <= 0) return;
+    setBusy(true);
+    try {
+      await updateDistributor(item.id, { tahminiCiro: sayi, tahminiCiroParaBirimi: paraBirimiGirisi });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleKayipKaydet() {
+    if (!kayipGirisi.trim()) return;
+    setBusy(true);
+    try {
+      await updateDistributor(item.id, { kayipSebebi: kayipGirisi.trim() });
     } finally {
       setBusy(false);
     }
@@ -75,6 +107,68 @@ export default function DistributorCard({ item }: { item: Distributor }) {
 
       {item.notlar && (
         <p className="mt-2 text-sm text-gray-600">{item.notlar}</p>
+      )}
+
+      {item.durum === "anlasma" && (
+        <div className="mt-3 rounded-lg bg-green-50 p-2.5">
+          {item.tahminiCiro && item.tahminiCiroParaBirimi ? (
+            <div className="text-sm font-medium text-green-800">
+              Tahmini yıllık ciro: {formatTutar(item.tahminiCiro, item.tahminiCiroParaBirimi)}
+            </div>
+          ) : (
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                type="number"
+                value={ciroGirisi}
+                onChange={(e) => setCiroGirisi(e.target.value)}
+                placeholder="Tahmini yıllık ciro"
+                className="min-w-0 flex-1 rounded-lg border border-green-200 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-green-400"
+              />
+              <select
+                value={paraBirimiGirisi}
+                onChange={(e) => setParaBirimiGirisi(e.target.value as ParaBirimi)}
+                className="shrink-0 rounded-lg border border-green-200 bg-white px-2 py-1.5 text-sm outline-none focus:border-green-400"
+              >
+                {PARA_BIRIMLERI.map((p) => (
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
+                ))}
+              </select>
+              <button
+                onClick={handleCiroKaydet}
+                disabled={busy}
+                className="shrink-0 rounded-lg bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700"
+              >
+                Kaydet
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {item.durum === "olumsuz" && (
+        <div className="mt-3 rounded-lg bg-red-50 p-2.5">
+          {item.kayipSebebi ? (
+            <div className="text-sm text-red-800">Kayıp sebebi: {item.kayipSebebi}</div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <input
+                value={kayipGirisi}
+                onChange={(e) => setKayipGirisi(e.target.value)}
+                placeholder="Kayıp sebebi (fiyat, rakip, zamanlama...)"
+                className="flex-1 rounded-lg border border-red-200 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-red-400"
+              />
+              <button
+                onClick={handleKayipKaydet}
+                disabled={busy}
+                className="shrink-0 rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700"
+              >
+                Kaydet
+              </button>
+            </div>
+          )}
+        </div>
       )}
 
       <div className="mt-3 flex justify-end">

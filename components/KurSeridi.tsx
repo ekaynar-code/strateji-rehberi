@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import { kurlariGetir } from "@/lib/kurlar";
 
-interface KurVeri {
+interface GosterimKuru {
   usdTry: number | null;
   eurTry: number | null;
   altinTry: number | null; // gram altın, TRY
@@ -24,7 +25,7 @@ function yonBelirle(eski: number | null, yeni: number | null): Yon {
 }
 
 export default function KurSeridi() {
-  const [kur, setKur] = useState<KurVeri>({ usdTry: null, eurTry: null, altinTry: null });
+  const [kur, setKur] = useState<GosterimKuru>({ usdTry: null, eurTry: null, altinTry: null });
   const [yonler, setYonler] = useState<{ usdTry: Yon; eurTry: Yon; altinTry: Yon }>({
     usdTry: "same",
     eurTry: "same",
@@ -33,7 +34,7 @@ export default function KurSeridi() {
   const [hata, setHata] = useState(false);
   const [yukleniyor, setYukleniyor] = useState(true);
   const [dakikaOnce, setDakikaOnce] = useState(0);
-  const oncekiKur = useRef<KurVeri>({ usdTry: null, eurTry: null, altinTry: null });
+  const oncekiKur = useRef<GosterimKuru>({ usdTry: null, eurTry: null, altinTry: null });
   const sonGuncelleme = useRef<Date | null>(null);
 
   useEffect(() => {
@@ -41,28 +42,22 @@ export default function KurSeridi() {
 
     async function veriGetir() {
       try {
-        const [dovizRes, altinRes] = await Promise.all([
-          fetch("https://open.er-api.com/v6/latest/USD"),
+        const [dovizKur, altinRes] = await Promise.all([
+          kurlariGetir(),
           fetch("https://api.gold-api.com/price/XAU"),
         ]);
 
-        if (!dovizRes.ok || !altinRes.ok) throw new Error("fetch başarısız");
-
-        const dovizData = await dovizRes.json();
+        if (!altinRes.ok) throw new Error("altın fetch başarısız");
         const altinData = await altinRes.json();
-
-        const usdTry: number | undefined = dovizData?.rates?.TRY;
-        const usdEur: number | undefined = dovizData?.rates?.EUR;
         const altinUsdOns: number | undefined = altinData?.price;
 
         if (iptal) return;
-        if (!usdTry || !usdEur || !altinUsdOns) throw new Error("eksik veri");
+        if (!dovizKur.usdTry || !altinUsdOns) throw new Error("eksik veri");
 
-        const eurTry = usdTry / usdEur;
         const altinUsdGram = altinUsdOns / 31.1035; // 1 ons = 31.1035 gram
-        const altinTry = altinUsdGram * usdTry;
+        const altinTry = altinUsdGram * dovizKur.usdTry;
 
-        const yeniKur: KurVeri = { usdTry, eurTry, altinTry };
+        const yeniKur: GosterimKuru = { usdTry: dovizKur.usdTry, eurTry: dovizKur.eurTry, altinTry };
 
         setYonler({
           usdTry: yonBelirle(oncekiKur.current.usdTry, yeniKur.usdTry),

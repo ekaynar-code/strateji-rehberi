@@ -1,0 +1,43 @@
+import { doc, getDoc, setDoc, onSnapshot } from "firebase/firestore";
+import { db } from "./firebase";
+
+export interface Hedef {
+  yil: number;
+  hedefTry: number; // yıllık toplam ciro hedefi (TRY), yerli + ihracat birleşik
+}
+
+const COLLECTION = "ayarlar";
+const DOC_ID = "yillik_hedef";
+
+function belgeYolu() {
+  return doc(db, COLLECTION, DOC_ID);
+}
+
+export function subscribeHedef(
+  callback: (hedef: Hedef | null) => void,
+  onError: (err: Error) => void
+) {
+  return onSnapshot(
+    belgeYolu(),
+    (snap) => {
+      if (!snap.exists()) {
+        callback(null);
+        return;
+      }
+      const data = snap.data();
+      callback({ yil: data.yil, hedefTry: data.hedefTry });
+    },
+    (err) => onError(err as Error)
+  );
+}
+
+export async function hedefKaydet(yil: number, hedefTry: number) {
+  await setDoc(belgeYolu(), { yil, hedefTry });
+}
+
+export async function hedefGetir(): Promise<Hedef | null> {
+  const snap = await getDoc(belgeYolu());
+  if (!snap.exists()) return null;
+  const data = snap.data();
+  return { yil: data.yil, hedefTry: data.hedefTry };
+}

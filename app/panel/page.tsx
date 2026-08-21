@@ -19,6 +19,8 @@ import {
 import { subscribeHaberSorgulari, type HaberSorgusu } from "@/lib/haberSorgulari";
 import { haberleriGetir, type HaberOgesi } from "@/lib/haberler";
 import { subscribeTodos, todoKalanGun, type Todo } from "@/lib/todos";
+import { subscribeHedef, hedefKaydet, type Hedef } from "@/lib/hedefler";
+import { kurlariGetir, tryyeCevir, type KurVeri } from "@/lib/kurlar";
 
 export default function GenelBakisPage() {
   return (
@@ -43,6 +45,38 @@ function GenelBakisContent() {
   const [loading, setLoading] = useState(true);
   const [onemliHaberler, setOnemliHaberler] = useState<HaberOgesi[]>([]);
   const [haberYukleniyor, setHaberYukleniyor] = useState(true);
+  const [hedef, setHedef] = useState<Hedef | null>(null);
+  const [kur, setKur] = useState<KurVeri>({ usdTry: null, eurTry: null });
+  const [hedefDuzenle, setHedefDuzenle] = useState(false);
+  const [hedefGirisi, setHedefGirisi] = useState("");
+
+  useEffect(() => {
+    const unsub = subscribeHedef(
+      (data) => setHedef(data),
+      () => {}
+    );
+    return () => unsub();
+  }, []);
+
+  useEffect(() => {
+    let iptal = false;
+    kurlariGetir()
+      .then((k) => {
+        if (!iptal) setKur(k);
+      })
+      .catch(() => {});
+    return () => {
+      iptal = true;
+    };
+  }, []);
+
+  async function handleHedefKaydet() {
+    const sayi = parseFloat(hedefGirisi);
+    if (isNaN(sayi) || sayi <= 0) return;
+    await hedefKaydet(new Date().getFullYear(), sayi);
+    setHedefDuzenle(false);
+    setHedefGirisi("");
+  }
 
   useEffect(() => {
     let d1 = false;
@@ -173,6 +207,17 @@ function GenelBakisContent() {
     return sayac;
   }, [distributorler]);
 
+  const gerceklesenCiroTry = useMemo(() => {
+    return distributorler
+      .filter((d) => d.durum === "anlasma" && d.tahminiCiro && d.tahminiCiroParaBirimi)
+      .reduce((toplam, d) => {
+        const tryDegeri = tryyeCevir(d.tahminiCiro!, d.tahminiCiroParaBirimi!, kur);
+        return toplam + (tryDegeri ?? 0);
+      }, 0);
+  }, [distributorler, kur]);
+
+  const hedefYuzde = hedef ? Math.min(100, Math.round((gerceklesenCiroTry / hedef.hedefTry) * 100)) : 0;
+
   return (
     <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-5 sm:py-6">
       <div className="mb-5">
@@ -184,6 +229,73 @@ function GenelBakisContent() {
         <p className="text-sm text-gray-500">Yükleniyor…</p>
       ) : (
         <>
+          {/* Yıllık ciro hedefi */}
+          <div className="mb-6 rounded-xl border border-gray-200 bg-white p-4">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-sm font-medium text-gray-700">
+                {hedef ? `${hedef.yil} yıllık ciro hedefi` : "Yıllık ciro hedefi"}
+              </span>
+              {!hedefDuzenle && (
+                <button
+                  onClick={() => {
+                    setHedefGirisi(hedef?.hedefTry.toString() || "");
+                    setHedefDuzenle(true);
+                  }}
+                  className="text-xs text-gray-400 hover:text-brand-500"
+                >
+                  {hedef ? "Düzenle" : "Hedef belirle"}
+                </button>
+              )}
+            </div>
+
+            {hedefDuzenle ? (
+              <div className="flex flex-wrap items-center gap-2">
+                <input
+                  type="number"
+                  value={hedefGirisi}
+                  onChange={(e) => setHedefGirisi(e.target.value)}
+                  placeholder="Yıllık toplam ciro hedefi (TRY)"
+                  className="min-w-0 flex-1 rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm outline-none focus:border-brand-400"
+                />
+                <button
+                  onClick={handleHedefKaydet}
+                  className="shrink-0 rounded-lg bg-brand-400 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-500"
+                >
+                  Kaydet
+                </button>
+                <button
+                  onClick={() => setHedefDuzenle(false)}
+                  className="shrink-0 text-sm text-gray-500 hover:underline"
+                >
+                  Vazgeç
+                </button>
+              </div>
+            ) : hedef ? (
+              <>
+                <div className="mb-1.5 h-2.5 w-full overflow-hidden rounded-full bg-gray-100">
+                  <div
+                    className="h-full rounded-full bg-brand-400 transition-all"
+                    style={{ width: `${hedefYuzde}%` }}
+                  />
+                </div>
+                <div className="flex items-center justify-between text-xs text-gray-500">
+                  <span>
+                    ₺{Math.round(gerceklesenCiroTry).toLocaleString("tr-TR")} / ₺
+                    {hedef.hedefTry.toLocaleString("tr-TR")}
+                  </span>
+                  <span className="font-medium text-brand-600">%{hedefYuzde}</span>
+                </div>
+                <p className="mt-1 text-xs text-gray-400">
+                  Yurt içi ve ihracat anlaşmaları güncel kurdan TRY'ye çevrilerek toplanır.
+                </p>
+              </>
+            ) : (
+              <p className="text-sm text-gray-500">
+                Henüz bir hedef belirlenmedi. Yukarıdaki &quot;Hedef belirle&quot; ile başlayın.
+              </p>
+            )}
+          </div>
+
           {/* KPI kartları */}
           <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
             <div className="rounded-xl border border-gray-200 bg-white p-4">
