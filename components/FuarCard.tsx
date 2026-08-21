@@ -12,11 +12,11 @@ import {
 } from "@/lib/fuarlar";
 
 const DURUM_RENK: Record<FuarDurum, string> = {
-  izleniyor: "bg-stone-100 text-stone-600",
+  izleniyor: "bg-gray-100 text-gray-600",
   katilim_planlandi: "bg-violet-50 text-violet-700",
   katilim_kesin: "bg-green-50 text-green-700",
-  katilinmayacak: "bg-stone-100 text-stone-400",
-  tamamlandi: "bg-stone-100 text-stone-400",
+  katilinmayacak: "bg-gray-100 text-gray-400",
+  tamamlandi: "bg-gray-100 text-gray-400",
 };
 
 function formatTarih(tarih: string): string {
@@ -55,28 +55,28 @@ export default function FuarCard({ item }: { item: Fuar }) {
       className={`rounded-xl border p-4 ${
         yaklasiyor
           ? "border-amber-300 bg-amber-50/50 ring-1 ring-amber-200"
-          : "border-stone-200 bg-white"
+          : "border-gray-200 bg-white"
       }`}
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="font-medium text-stone-900">{item.ad}</span>
+            <span className="font-medium text-gray-900">{item.ad}</span>
             {yaklasiyor && (
               <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
                 {gun === 0 ? "bugün" : `${gun} gün kaldı`}
               </span>
             )}
             {gecmis && item.durum !== "tamamlandi" && (
-              <span className="rounded-full bg-stone-100 px-2 py-0.5 text-xs text-stone-500">
+              <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">
                 geçti
               </span>
             )}
           </div>
-          <div className="mt-0.5 text-sm text-stone-500">
+          <div className="mt-0.5 text-sm text-gray-500">
             {item.lokasyon} · {FUAR_BOLGE_LABEL[item.bolge]}
           </div>
-          <div className="mt-0.5 text-sm text-stone-500">{formatTarih(item.tarih)}</div>
+          <div className="mt-0.5 text-sm text-gray-500">{formatTarih(item.tarih)}</div>
         </div>
 
         <select
@@ -93,12 +93,12 @@ export default function FuarCard({ item }: { item: Fuar }) {
         </select>
       </div>
 
-      {item.notlar && <p className="mt-2 text-sm text-stone-600">{item.notlar}</p>}
+      {item.notlar && <p className="mt-2 text-sm text-gray-600">{item.notlar}</p>}
 
       <div className="mt-3 flex justify-end">
         {confirmDelete ? (
           <div className="flex items-center gap-3 text-sm">
-            <span className="text-stone-500">Silinsin mi?</span>
+            <span className="text-gray-500">Silinsin mi?</span>
             <button
               onClick={handleDelete}
               disabled={busy}
@@ -108,7 +108,7 @@ export default function FuarCard({ item }: { item: Fuar }) {
             </button>
             <button
               onClick={() => setConfirmDelete(false)}
-              className="text-stone-500 hover:underline"
+              className="text-gray-500 hover:underline"
             >
               Vazgeç
             </button>
@@ -116,7 +116,7 @@ export default function FuarCard({ item }: { item: Fuar }) {
         ) : (
           <button
             onClick={() => setConfirmDelete(true)}
-            className="text-xs text-stone-400 hover:text-red-600"
+            className="text-xs text-gray-400 hover:text-red-600"
           >
             Kaydı sil
           </button>

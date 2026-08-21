@@ -15,7 +15,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-1 items-center justify-center">
-      <p className="text-sm text-stone-500">Yükleniyor…</p>
+      <p className="text-sm text-gray-500">Yükleniyor…</p>
     </div>
   );
 }

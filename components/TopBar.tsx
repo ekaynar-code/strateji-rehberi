@@ -15,23 +15,23 @@ export default function TopBar() {
   }
 
   return (
-    <header className="border-b border-stone-200 bg-white">
+    <header className="border-b border-gray-200 bg-white">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
         <div>
-          <div className="text-xs font-medium tracking-wide text-stone-500 uppercase">
+          <div className="text-xs font-medium tracking-wide text-gray-500 uppercase">
             strateji rehberi
           </div>
-          <div className="text-base font-medium text-stone-900">
+          <div className="text-base font-medium text-gray-900">
             satış ve ihracat paneli
           </div>
         </div>
         <div className="flex items-center gap-3">
           {user?.email && (
-            <span className="hidden text-sm text-stone-500 sm:inline">{user.email}</span>
+            <span className="hidden text-sm text-gray-500 sm:inline">{user.email}</span>
           )}
           <button
             onClick={handleSignOut}
-            className="rounded-lg border border-stone-300 px-3 py-1.5 text-sm text-stone-700 transition hover:bg-stone-50"
+            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700 transition hover:bg-gray-50"
           >
             Çıkış yap
           </button>

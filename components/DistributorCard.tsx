@@ -12,7 +12,7 @@ import {
 } from "@/lib/distributors";
 
 const DURUM_RENK: Record<Durum, string> = {
-  arastirmada: "bg-stone-100 text-stone-600",
+  arastirmada: "bg-gray-100 text-gray-600",
   temas_edildi: "bg-blue-50 text-blue-700",
   yanit_bekleniyor: "bg-amber-50 text-amber-700",
   gorusme_planlandi: "bg-violet-50 text-violet-700",
@@ -43,11 +43,11 @@ export default function DistributorCard({ item }: { item: Distributor }) {
   }
 
   return (
-    <div className="rounded-xl border border-stone-200 bg-white p-4">
+    <div className="rounded-xl border border-gray-200 bg-white p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
-          <div className="font-medium text-stone-900">{item.firmaAdi}</div>
-          <div className="mt-0.5 text-sm text-stone-500">
+          <div className="font-medium text-gray-900">{item.firmaAdi}</div>
+          <div className="mt-0.5 text-sm text-gray-500">
             {item.ulke} · {BOLGE_LABEL[item.bolge]} · {PROFIL_LABEL[item.profil]}
           </div>
         </div>
@@ -66,7 +66,7 @@ export default function DistributorCard({ item }: { item: Distributor }) {
       </div>
 
       {(item.iletisimKisisi || item.iletisimBilgisi) && (
-        <div className="mt-2 text-sm text-stone-600">
+        <div className="mt-2 text-sm text-gray-600">
           {item.iletisimKisisi}
           {item.iletisimKisisi && item.iletisimBilgisi ? " · " : ""}
           {item.iletisimBilgisi}
@@ -74,13 +74,13 @@ export default function DistributorCard({ item }: { item: Distributor }) {
       )}
 
       {item.notlar && (
-        <p className="mt-2 text-sm text-stone-600">{item.notlar}</p>
+        <p className="mt-2 text-sm text-gray-600">{item.notlar}</p>
       )}
 
       <div className="mt-3 flex justify-end">
         {confirmDelete ? (
           <div className="flex items-center gap-2 text-sm">
-            <span className="text-stone-500">Silinsin mi?</span>
+            <span className="text-gray-500">Silinsin mi?</span>
             <button
               onClick={handleDelete}
               disabled={busy}
@@ -90,7 +90,7 @@ export default function DistributorCard({ item }: { item: Distributor }) {
             </button>
             <button
               onClick={() => setConfirmDelete(false)}
-              className="text-stone-500 hover:underline"
+              className="text-gray-500 hover:underline"
             >
               Vazgeç
             </button>
@@ -98,7 +98,7 @@ export default function DistributorCard({ item }: { item: Distributor }) {
         ) : (
           <button
             onClick={() => setConfirmDelete(true)}
-            className="text-xs text-stone-400 hover:text-red-600"
+            className="text-xs text-gray-400 hover:text-red-600"
           >
             Kaydı sil
           </button>

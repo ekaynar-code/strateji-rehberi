@@ -113,45 +113,45 @@ function GenelBakisContent() {
   return (
     <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-5 sm:py-6">
       <div className="mb-5">
-        <h1 className="text-lg font-medium text-stone-900">Genel Bakış</h1>
-        <p className="text-sm text-stone-500">İhracat ve pazar geliştirme faaliyetlerinin özeti</p>
+        <h1 className="text-lg font-medium text-gray-900">Genel Bakış</h1>
+        <p className="text-sm text-gray-500">İhracat ve pazar geliştirme faaliyetlerinin özeti</p>
       </div>
 
       <KurSeridi />
 
       {loading ? (
-        <p className="text-sm text-stone-500">Yükleniyor…</p>
+        <p className="text-sm text-gray-500">Yükleniyor…</p>
       ) : (
         <>
           {/* KPI kartları */}
           <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <div className="rounded-xl border border-stone-200 bg-white p-4">
-              <div className="text-xs text-stone-500">Toplam distribütör kaydı</div>
-              <div className="mt-1 text-2xl font-medium text-stone-900">{distributorler.length}</div>
+            <div className="rounded-xl border border-gray-200 bg-white p-4">
+              <div className="text-xs text-gray-500">Toplam distribütör kaydı</div>
+              <div className="mt-1 text-2xl font-medium text-gray-900">{distributorler.length}</div>
             </div>
-            <div className="rounded-xl border border-stone-200 bg-white p-4">
-              <div className="text-xs text-stone-500">Aktif görüşme</div>
-              <div className="mt-1 text-2xl font-medium text-stone-900">{aktifGorusmeler}</div>
+            <div className="rounded-xl border border-gray-200 bg-white p-4">
+              <div className="text-xs text-gray-500">Aktif görüşme</div>
+              <div className="mt-1 text-2xl font-medium text-gray-900">{aktifGorusmeler}</div>
             </div>
-            <div className="rounded-xl border border-stone-200 bg-white p-4">
-              <div className="text-xs text-stone-500">Anlaşma sağlanan</div>
+            <div className="rounded-xl border border-gray-200 bg-white p-4">
+              <div className="text-xs text-gray-500">Anlaşma sağlanan</div>
               <div className="mt-1 text-2xl font-medium text-green-700">{anlasmaSayisi}</div>
             </div>
-            <div className="rounded-xl border border-stone-200 bg-white p-4">
-              <div className="text-xs text-stone-500">30 gün içindeki fuar</div>
+            <div className="rounded-xl border border-gray-200 bg-white p-4">
+              <div className="text-xs text-gray-500">30 gün içindeki fuar</div>
               <div className="mt-1 text-2xl font-medium text-amber-700">{yaklasanFuarlar.length}</div>
             </div>
           </div>
 
           {/* Bölge dağılımı */}
           {distributorler.length > 0 && (
-            <div className="mb-6 rounded-xl border border-stone-200 bg-white p-4">
-              <div className="mb-3 text-sm font-medium text-stone-700">Bölge dağılımı — distribütör kayıtları</div>
+            <div className="mb-6 rounded-xl border border-gray-200 bg-white p-4">
+              <div className="mb-3 text-sm font-medium text-gray-700">Bölge dağılımı — distribütör kayıtları</div>
               <div className="flex flex-wrap gap-4">
                 {Object.entries(BOLGE_LABEL).map(([key, label]) => (
                   <div key={key} className="flex items-baseline gap-1.5">
-                    <span className="text-lg font-medium text-stone-900">{bolgeDagilimi[key] || 0}</span>
-                    <span className="text-sm text-stone-500">{label}</span>
+                    <span className="text-lg font-medium text-gray-900">{bolgeDagilimi[key] || 0}</span>
+                    <span className="text-sm text-gray-500">{label}</span>
                   </div>
                 ))}
               </div>
@@ -161,13 +161,13 @@ function GenelBakisContent() {
           {/* Yaklaşan fuarlar */}
           <div className="mb-6">
             <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-sm font-medium text-stone-700">Yaklaşan fuarlar (30 gün içinde)</h2>
-              <Link href="/panel/fuarlar" className="text-sm text-stone-500 hover:text-stone-900 hover:underline">
+              <h2 className="text-sm font-medium text-gray-700">Yaklaşan fuarlar (30 gün içinde)</h2>
+              <Link href="/panel/fuarlar" className="text-sm text-gray-500 hover:text-gray-900 hover:underline">
                 Tümünü gör
               </Link>
             </div>
             {yaklasanFuarlar.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-stone-300 p-6 text-center text-sm text-stone-500">
+              <div className="rounded-xl border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500">
                 Önümüzdeki 30 gün içinde planlanan fuar yok.
               </div>
             ) : (
@@ -180,8 +180,8 @@ function GenelBakisContent() {
                       className="flex flex-col gap-2 rounded-xl border border-amber-200 bg-amber-50/50 p-3 sm:flex-row sm:items-center sm:justify-between"
                     >
                       <div>
-                        <span className="font-medium text-stone-900">{f.ad}</span>
-                        <span className="ml-2 text-sm text-stone-500">
+                        <span className="font-medium text-gray-900">{f.ad}</span>
+                        <span className="ml-2 text-sm text-gray-500">
                           {f.lokasyon} · {formatTarih(f.tarih)}
                         </span>
                       </div>
@@ -198,13 +198,13 @@ function GenelBakisContent() {
           {/* Yanıt bekleyen distribütörler */}
           <div>
             <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-sm font-medium text-stone-700">Yanıt bekleyen görüşmeler</h2>
-              <Link href="/panel/distributorler" className="text-sm text-stone-500 hover:text-stone-900 hover:underline">
+              <h2 className="text-sm font-medium text-gray-700">Yanıt bekleyen görüşmeler</h2>
+              <Link href="/panel/distributorler" className="text-sm text-gray-500 hover:text-gray-900 hover:underline">
                 Tümünü gör
               </Link>
             </div>
             {uzunSureYanitBekleyenler.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-stone-300 p-6 text-center text-sm text-stone-500">
+              <div className="rounded-xl border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500">
                 Yanıt bekleyen görüşme yok.
               </div>
             ) : (
@@ -212,11 +212,11 @@ function GenelBakisContent() {
                 {uzunSureYanitBekleyenler.map((d) => (
                   <div
                     key={d.id}
-                    className="flex flex-col gap-1 rounded-xl border border-stone-200 bg-white p-3 sm:flex-row sm:items-center sm:justify-between"
+                    className="flex flex-col gap-1 rounded-xl border border-gray-200 bg-white p-3 sm:flex-row sm:items-center sm:justify-between"
                   >
                     <div>
-                      <span className="font-medium text-stone-900">{d.firmaAdi}</span>
-                      <span className="ml-2 text-sm text-stone-500">
+                      <span className="font-medium text-gray-900">{d.firmaAdi}</span>
+                      <span className="ml-2 text-sm text-gray-500">
                         {d.ulke} · {BOLGE_LABEL[d.bolge]}
                       </span>
                     </div>

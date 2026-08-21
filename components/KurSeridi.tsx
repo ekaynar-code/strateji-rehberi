@@ -61,7 +61,7 @@ export default function KurSeridi() {
 
   if (yukleniyor) {
     return (
-      <div className="mb-4 rounded-lg border border-stone-200 bg-white px-4 py-2.5 text-sm text-stone-400">
+      <div className="mb-4 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-400">
         Kurlar yükleniyor…
       </div>
     );
@@ -69,7 +69,7 @@ export default function KurSeridi() {
 
   if (hata) {
     return (
-      <div className="mb-4 rounded-lg border border-stone-200 bg-white px-4 py-2.5 text-sm text-stone-400">
+      <div className="mb-4 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-400">
         Kur verileri şu anda alınamıyor.
       </div>
     );
@@ -79,18 +79,18 @@ export default function KurSeridi() {
     deger === null ? "—" : deger.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   return (
-    <div className="mb-4 flex flex-wrap items-center gap-x-5 gap-y-1.5 rounded-lg border border-stone-200 bg-white px-4 py-2.5 text-sm">
+    <div className="mb-4 flex flex-wrap items-center gap-x-5 gap-y-1.5 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm">
       <span className="flex items-center gap-1.5">
-        <span className="text-stone-500">USD/TRY</span>
-        <span className="font-medium text-stone-900">{formatla(kur.usdTry)}</span>
+        <span className="text-gray-500">USD/TRY</span>
+        <span className="font-medium text-gray-900">{formatla(kur.usdTry)}</span>
       </span>
       <span className="flex items-center gap-1.5">
-        <span className="text-stone-500">EUR/TRY</span>
-        <span className="font-medium text-stone-900">{formatla(kur.eurTry)}</span>
+        <span className="text-gray-500">EUR/TRY</span>
+        <span className="font-medium text-gray-900">{formatla(kur.eurTry)}</span>
       </span>
       <span className="flex items-center gap-1.5">
-        <span className="text-stone-500">Gram Altın</span>
-        <span className="font-medium text-stone-900">₺{formatla(kur.altinTry)}</span>
+        <span className="text-gray-500">Gram Altın</span>
+        <span className="font-medium text-gray-900">₺{formatla(kur.altinTry)}</span>
       </span>
     </div>
   );

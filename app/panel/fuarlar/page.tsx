@@ -72,8 +72,8 @@ function FuarlarContent() {
     <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-5 sm:py-6">
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-lg font-medium text-stone-900">Fuar ve etkinlik takibi</h1>
-          <p className="text-sm text-stone-500">
+          <h1 className="text-lg font-medium text-gray-900">Fuar ve etkinlik takibi</h1>
+          <p className="text-sm text-gray-500">
             {items.length} kayıt
             {yaklasanSayisi > 0 && (
               <span className="text-amber-700"> · {yaklasanSayisi} tanesi 30 gün içinde</span>
@@ -82,7 +82,7 @@ function FuarlarContent() {
         </div>
         <button
           onClick={() => setShowForm((s) => !s)}
-          className="w-full rounded-lg bg-stone-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-stone-800 sm:w-auto sm:py-2"
+          className="w-full rounded-lg bg-brand-400 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-brand-500 sm:w-auto sm:py-2"
         >
           {showForm ? "Formu kapat" : "+ Yeni etkinlik"}
         </button>
@@ -101,8 +101,8 @@ function FuarlarContent() {
             onClick={() => setBolgeFiltre(b)}
             className={`shrink-0 rounded-lg px-3 py-1.5 text-sm transition ${
               bolgeFiltre === b
-                ? "bg-stone-900 text-white"
-                : "border border-stone-300 text-stone-600 hover:bg-stone-50"
+                ? "bg-brand-400 text-white"
+                : "border border-gray-300 text-gray-600 hover:bg-gray-50"
             }`}
           >
             {b === "hepsi" ? "Tümü" : FUAR_BOLGE_LABEL[b]}
@@ -110,12 +110,12 @@ function FuarlarContent() {
         ))}
       </div>
 
-      {loading && <p className="text-sm text-stone-500">Yükleniyor…</p>}
+      {loading && <p className="text-sm text-gray-500">Yükleniyor…</p>}
       {error && <p className="text-sm text-red-600">{error}</p>}
 
       {!loading && !error && filtered.length === 0 && (
-        <div className="rounded-xl border border-dashed border-stone-300 p-8 text-center">
-          <p className="text-sm text-stone-500">
+        <div className="rounded-xl border border-dashed border-gray-300 p-8 text-center">
+          <p className="text-sm text-gray-500">
             {items.length === 0
               ? "Henüz kayıt yok. İlk fuar veya etkinliği ekleyin."
               : "Bu bölgede kayıt yok."}

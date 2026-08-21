@@ -14,7 +14,7 @@ export default function PanelTabs() {
   const pathname = usePathname();
 
   return (
-    <nav className="border-b border-stone-200 bg-white">
+    <nav className="border-b border-gray-200 bg-white">
       <div className="mx-auto flex max-w-5xl gap-1 overflow-x-auto px-4">
         {SEKMELER.map((s) => {
           const active = pathname === s.href;
@@ -24,8 +24,8 @@ export default function PanelTabs() {
               href={s.href}
               className={`shrink-0 border-b-2 px-3 py-3 text-sm font-medium transition ${
                 active
-                  ? "border-stone-900 text-stone-900"
-                  : "border-transparent text-stone-500 hover:text-stone-700"
+                  ? "border-brand-400 text-brand-500"
+                  : "border-transparent text-gray-500 hover:text-gray-700"
               }`}
             >
               {s.label}

@@ -1,22 +1,54 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f7f7f8;
+  --foreground: #23262b;
+
+  /* Pihauss marka kimliği: koyu gri + sıcak turuncu */
+  --gray-50: #f7f7f8;
+  --gray-100: #eeeef0;
+  --gray-200: #dcdde1;
+  --gray-300: #b8bac1;
+  --gray-400: #8b8e97;
+  --gray-500: #63666f;
+  --gray-600: #464951;
+  --gray-700: #34373e;
+  --gray-800: #2e3238;
+  --gray-900: #1b1d21;
+
+  --brand-50: #fdf3e7;
+  --brand-100: #fbe4c4;
+  --brand-200: #f5c988;
+  --brand-300: #efad55;
+  --brand-400: #e8892b;
+  --brand-500: #d1701a;
+  --brand-600: #ab5814;
+  --brand-700: #814213;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-gray-50: var(--gray-50);
+  --color-gray-100: var(--gray-100);
+  --color-gray-200: var(--gray-200);
+  --color-gray-300: var(--gray-300);
+  --color-gray-400: var(--gray-400);
+  --color-gray-500: var(--gray-500);
+  --color-gray-600: var(--gray-600);
+  --color-gray-700: var(--gray-700);
+  --color-gray-800: var(--gray-800);
+  --color-gray-900: var(--gray-900);
+  --color-brand-50: var(--brand-50);
+  --color-brand-100: var(--brand-100);
+  --color-brand-200: var(--brand-200);
+  --color-brand-300: var(--brand-300);
+  --color-brand-400: var(--brand-400);
+  --color-brand-500: var(--brand-500);
+  --color-brand-600: var(--brand-600);
+  --color-brand-700: var(--brand-700);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {

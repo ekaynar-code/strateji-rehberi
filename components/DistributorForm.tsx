@@ -59,39 +59,39 @@ export default function DistributorForm({ onDone }: { onDone: () => void }) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-xl border border-stone-200 bg-white p-5"
+      className="rounded-xl border border-gray-200 bg-white p-5"
     >
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-stone-700">
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">
             Firma adı
           </label>
           <input
             value={firmaAdi}
             onChange={(e) => setFirmaAdi(e.target.value)}
             placeholder="örn. Arcoma Bulgaria"
-            className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-stone-500 focus:ring-1 focus:ring-stone-500"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400"
           />
         </div>
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-stone-700">
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">
             Ülke
           </label>
           <input
             value={ulke}
             onChange={(e) => setUlke(e.target.value)}
             placeholder="örn. Bulgaristan"
-            className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-stone-500 focus:ring-1 focus:ring-stone-500"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400"
           />
         </div>
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-stone-700">
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">
             Bölge
           </label>
           <select
             value={bolge}
             onChange={(e) => setBolge(e.target.value as Bolge)}
-            className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-stone-500 focus:ring-1 focus:ring-stone-500"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400"
           >
             {BOLGELER.map((b) => (
               <option key={b} value={b}>
@@ -101,13 +101,13 @@ export default function DistributorForm({ onDone }: { onDone: () => void }) {
           </select>
         </div>
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-stone-700">
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">
             Profil
           </label>
           <select
             value={profil}
             onChange={(e) => setProfil(e.target.value as Profil)}
-            className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-stone-500 focus:ring-1 focus:ring-stone-500"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400"
           >
             {PROFILLER.map((p) => (
               <option key={p} value={p}>
@@ -117,13 +117,13 @@ export default function DistributorForm({ onDone }: { onDone: () => void }) {
           </select>
         </div>
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-stone-700">
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">
             Durum
           </label>
           <select
             value={durum}
             onChange={(e) => setDurum(e.target.value as Durum)}
-            className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-stone-500 focus:ring-1 focus:ring-stone-500"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400"
           >
             {DURUMLAR.map((d) => (
               <option key={d} value={d}>
@@ -133,29 +133,29 @@ export default function DistributorForm({ onDone }: { onDone: () => void }) {
           </select>
         </div>
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-stone-700">
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">
             İletişim kişisi
           </label>
           <input
             value={iletisimKisisi}
             onChange={(e) => setIletisimKisisi(e.target.value)}
             placeholder="opsiyonel"
-            className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-stone-500 focus:ring-1 focus:ring-stone-500"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400"
           />
         </div>
         <div className="sm:col-span-2">
-          <label className="mb-1.5 block text-sm font-medium text-stone-700">
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">
             İletişim bilgisi (e-posta / telefon)
           </label>
           <input
             value={iletisimBilgisi}
             onChange={(e) => setIletisimBilgisi(e.target.value)}
             placeholder="opsiyonel"
-            className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-stone-500 focus:ring-1 focus:ring-stone-500"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400"
           />
         </div>
         <div className="sm:col-span-2">
-          <label className="mb-1.5 block text-sm font-medium text-stone-700">
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">
             Notlar
           </label>
           <textarea
@@ -163,7 +163,7 @@ export default function DistributorForm({ onDone }: { onDone: () => void }) {
             onChange={(e) => setNotlar(e.target.value)}
             rows={3}
             placeholder="görüşme özeti, gözlemler..."
-            className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-stone-500 focus:ring-1 focus:ring-stone-500"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400"
           />
         </div>
       </div>
@@ -178,14 +178,14 @@ export default function DistributorForm({ onDone }: { onDone: () => void }) {
         <button
           type="button"
           onClick={onDone}
-          className="rounded-lg border border-stone-300 px-4 py-2 text-sm text-stone-700 transition hover:bg-stone-50"
+          className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 transition hover:bg-gray-50"
         >
           Vazgeç
         </button>
         <button
           type="submit"
           disabled={submitting}
-          className="rounded-lg bg-stone-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-stone-800 disabled:opacity-60"
+          className="rounded-lg bg-brand-400 px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-500 disabled:opacity-60"
         >
           {submitting ? "Kaydediliyor…" : "Kaydet"}
         </button>

@@ -52,50 +52,50 @@ export default function FuarForm({ onDone }: { onDone: () => void }) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-xl border border-stone-200 bg-white p-4 sm:p-5"
+      className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5"
     >
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-stone-700">
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">
             Etkinlik adı
           </label>
           <input
             value={ad}
             onChange={(e) => setAd(e.target.value)}
             placeholder="örn. Unicera 2027"
-            className="w-full rounded-lg border border-stone-300 px-3 py-2.5 text-base outline-none focus:border-stone-500 focus:ring-1 focus:ring-stone-500 sm:text-sm"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-base outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 sm:text-sm"
           />
         </div>
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-stone-700">
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">
             Lokasyon
           </label>
           <input
             value={lokasyon}
             onChange={(e) => setLokasyon(e.target.value)}
             placeholder="örn. İstanbul, Türkiye"
-            className="w-full rounded-lg border border-stone-300 px-3 py-2.5 text-base outline-none focus:border-stone-500 focus:ring-1 focus:ring-stone-500 sm:text-sm"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-base outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 sm:text-sm"
           />
         </div>
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-stone-700">
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">
             Tarih
           </label>
           <input
             type="date"
             value={tarih}
             onChange={(e) => setTarih(e.target.value)}
-            className="w-full rounded-lg border border-stone-300 px-3 py-2.5 text-base outline-none focus:border-stone-500 focus:ring-1 focus:ring-stone-500 sm:text-sm"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-base outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 sm:text-sm"
           />
         </div>
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-stone-700">
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">
             Bölge
           </label>
           <select
             value={bolge}
             onChange={(e) => setBolge(e.target.value as FuarBolge)}
-            className="w-full rounded-lg border border-stone-300 px-3 py-2.5 text-base outline-none focus:border-stone-500 focus:ring-1 focus:ring-stone-500 sm:text-sm"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-base outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 sm:text-sm"
           >
             {BOLGELER.map((b) => (
               <option key={b} value={b}>
@@ -105,13 +105,13 @@ export default function FuarForm({ onDone }: { onDone: () => void }) {
           </select>
         </div>
         <div className="sm:col-span-2">
-          <label className="mb-1.5 block text-sm font-medium text-stone-700">
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">
             Durum
           </label>
           <select
             value={durum}
             onChange={(e) => setDurum(e.target.value as FuarDurum)}
-            className="w-full rounded-lg border border-stone-300 px-3 py-2.5 text-base outline-none focus:border-stone-500 focus:ring-1 focus:ring-stone-500 sm:text-sm"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-base outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 sm:text-sm"
           >
             {DURUMLAR.map((d) => (
               <option key={d} value={d}>
@@ -121,7 +121,7 @@ export default function FuarForm({ onDone }: { onDone: () => void }) {
           </select>
         </div>
         <div className="sm:col-span-2">
-          <label className="mb-1.5 block text-sm font-medium text-stone-700">
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">
             Notlar
           </label>
           <textarea
@@ -129,7 +129,7 @@ export default function FuarForm({ onDone }: { onDone: () => void }) {
             onChange={(e) => setNotlar(e.target.value)}
             rows={3}
             placeholder="stant planı, hedef görüşmeler..."
-            className="w-full rounded-lg border border-stone-300 px-3 py-2.5 text-base outline-none focus:border-stone-500 focus:ring-1 focus:ring-stone-500 sm:text-sm"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-base outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 sm:text-sm"
           />
         </div>
       </div>
@@ -144,14 +144,14 @@ export default function FuarForm({ onDone }: { onDone: () => void }) {
         <button
           type="button"
           onClick={onDone}
-          className="rounded-lg border border-stone-300 px-4 py-2.5 text-sm text-stone-700 transition hover:bg-stone-50"
+          className="rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-700 transition hover:bg-gray-50"
         >
           Vazgeç
         </button>
         <button
           type="submit"
           disabled={submitting}
-          className="rounded-lg bg-stone-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-stone-800 disabled:opacity-60"
+          className="rounded-lg bg-brand-400 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-brand-500 disabled:opacity-60"
         >
           {submitting ? "Kaydediliyor…" : "Kaydet"}
         </button>

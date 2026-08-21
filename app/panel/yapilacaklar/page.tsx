@@ -57,8 +57,8 @@ function YapilacaklarContent() {
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-5 sm:py-6">
       <div className="mb-5">
-        <h1 className="text-lg font-medium text-stone-900">Yapılacaklar</h1>
-        <p className="text-sm text-stone-500">
+        <h1 className="text-lg font-medium text-gray-900">Yapılacaklar</h1>
+        <p className="text-sm text-gray-500">
           {bekleyenler.length} bekleyen · {tamamlananlar.length} tamamlandı
         </p>
       </div>
@@ -68,23 +68,23 @@ function YapilacaklarContent() {
           value={yeniBaslik}
           onChange={(e) => setYeniBaslik(e.target.value)}
           placeholder="Yeni görev ekle…"
-          className="flex-1 rounded-lg border border-stone-300 px-3 py-2.5 text-base outline-none focus:border-stone-500 focus:ring-1 focus:ring-stone-500 sm:text-sm"
+          className="flex-1 rounded-lg border border-gray-300 px-3 py-2.5 text-base outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 sm:text-sm"
         />
         <button
           type="submit"
           disabled={submitting || !yeniBaslik.trim()}
-          className="shrink-0 rounded-lg bg-stone-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-stone-800 disabled:opacity-50 sm:py-2"
+          className="shrink-0 rounded-lg bg-brand-400 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-brand-500 disabled:opacity-50 sm:py-2"
         >
           Ekle
         </button>
       </form>
 
-      {loading && <p className="text-sm text-stone-500">Yükleniyor…</p>}
+      {loading && <p className="text-sm text-gray-500">Yükleniyor…</p>}
       {error && <p className="text-sm text-red-600">{error}</p>}
 
       {!loading && !error && items.length === 0 && (
-        <div className="rounded-xl border border-dashed border-stone-300 p-8 text-center">
-          <p className="text-sm text-stone-500">Henüz görev yok. Yukarıdan ilk görevi ekleyin.</p>
+        <div className="rounded-xl border border-dashed border-gray-300 p-8 text-center">
+          <p className="text-sm text-gray-500">Henüz görev yok. Yukarıdan ilk görevi ekleyin.</p>
         </div>
       )}
 
@@ -98,7 +98,7 @@ function YapilacaklarContent() {
 
       {tamamlananlar.length > 0 && (
         <div>
-          <div className="mb-2 text-xs font-medium uppercase tracking-wide text-stone-400">
+          <div className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-400">
             Tamamlananlar
           </div>
           <div className="flex flex-col gap-2">
@@ -136,7 +136,7 @@ function TodoRow({ item }: { item: Todo }) {
   return (
     <div
       className={`flex items-center gap-3 rounded-xl border p-3 ${
-        item.tamamlandi ? "border-stone-100 bg-stone-50" : "border-stone-200 bg-white"
+        item.tamamlandi ? "border-gray-100 bg-gray-50" : "border-gray-200 bg-white"
       }`}
     >
       <button
@@ -145,8 +145,8 @@ function TodoRow({ item }: { item: Todo }) {
         aria-label={item.tamamlandi ? "Tamamlanmadı olarak işaretle" : "Tamamlandı olarak işaretle"}
         className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 transition ${
           item.tamamlandi
-            ? "border-stone-400 bg-stone-400 text-white"
-            : "border-stone-300 hover:border-stone-500"
+            ? "border-brand-400 bg-brand-400 text-white"
+            : "border-gray-300 hover:border-brand-400"
         }`}
       >
         {item.tamamlandi && (
@@ -156,14 +156,14 @@ function TodoRow({ item }: { item: Todo }) {
         )}
       </button>
 
-      <span className={`flex-1 text-sm ${item.tamamlandi ? "text-stone-400 line-through" : "text-stone-900"}`}>
+      <span className={`flex-1 text-sm ${item.tamamlandi ? "text-gray-400 line-through" : "text-gray-900"}`}>
         {item.baslik}
       </span>
 
       <button
         onClick={handleDelete}
         disabled={busy}
-        className="shrink-0 text-xs text-stone-300 hover:text-red-600"
+        className="shrink-0 text-xs text-gray-300 hover:text-red-600"
       >
         Sil
       </button>
