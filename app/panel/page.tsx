@@ -6,7 +6,6 @@ import Link from "next/link";
 import RequireAuth from "@/components/RequireAuth";
 import TopBar from "@/components/TopBar";
 import PanelTabs from "@/components/PanelTabs";
-import KurSeridi from "@/components/KurSeridi";
 import {
   subscribeDistributors,
   type Distributor,
@@ -25,7 +24,6 @@ export default function GenelBakisPage() {
     <RequireAuth>
       <TopBar />
       <PanelTabs />
-      <KurSeridi />
       <GenelBakisContent />
     </RequireAuth>
   );

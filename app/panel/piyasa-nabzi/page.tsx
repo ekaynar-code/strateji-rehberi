@@ -4,7 +4,6 @@ import { useEffect, useState, useCallback } from "react";
 import RequireAuth from "@/components/RequireAuth";
 import TopBar from "@/components/TopBar";
 import PanelTabs from "@/components/PanelTabs";
-import KurSeridi from "@/components/KurSeridi";
 import {
   subscribeHaberSorgulari,
   addHaberSorgusu,
@@ -19,7 +18,6 @@ export default function PiyasaNabziPage() {
     <RequireAuth>
       <TopBar />
       <PanelTabs />
-      <KurSeridi />
       <PiyasaNabziContent />
     </RequireAuth>
   );

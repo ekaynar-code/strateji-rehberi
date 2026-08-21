@@ -10,7 +10,7 @@ interface KurVeri {
 
 type Yon = "up" | "down" | "same";
 
-const YENILEME_DAKIKA = 5;
+const YENILEME_DAKIKA = 1;
 
 function formatla(deger: number | null) {
   return deger === null ? "—" : deger.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -100,29 +100,25 @@ export default function KurSeridi() {
   }, []);
 
   if (yukleniyor) {
-    return (
-      <div className="sticky top-0 z-10 border-b border-gray-200 bg-white px-4 py-2 text-sm text-gray-400">
-        <div className="mx-auto max-w-5xl">Kurlar yükleniyor…</div>
-      </div>
-    );
+    return <div className="border-b border-gray-100 px-4 py-1.5 text-xs text-gray-400">Kurlar yükleniyor…</div>;
   }
 
   if (hata) {
     return (
-      <div className="sticky top-0 z-10 border-b border-gray-200 bg-white px-4 py-2 text-sm text-gray-400">
-        <div className="mx-auto max-w-5xl">Kur verileri şu anda alınamıyor.</div>
+      <div className="border-b border-gray-100 px-4 py-1.5 text-xs text-gray-400">
+        Kur verileri şu anda alınamıyor.
       </div>
     );
   }
 
   return (
-    <div className="sticky top-0 z-10 border-b border-gray-200 bg-white px-4 py-2 text-sm">
-      <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-5 gap-y-1">
+    <div className="border-b border-gray-100 bg-gray-50/50 px-4 py-1.5 text-xs">
+      <div className="mx-auto flex max-w-5xl items-center gap-x-4 overflow-x-auto whitespace-nowrap">
         <KurItem label="USD/TRY" deger={kur.usdTry} yon={yonler.usdTry} />
         <KurItem label="EUR/TRY" deger={kur.eurTry} yon={yonler.eurTry} />
         <KurItem label="Gram Altın" deger={kur.altinTry} yon={yonler.altinTry} prefix="₺" />
-        <span className="ml-auto text-xs text-gray-400">
-          {dakikaOnce <= 0 ? "az önce güncellendi" : `${dakikaOnce} dk önce güncellendi`} · {YENILEME_DAKIKA} dk'da bir
+        <span className="ml-auto shrink-0 text-gray-400">
+          {dakikaOnce <= 0 ? "az önce" : `${dakikaOnce} dk önce`} · {YENILEME_DAKIKA} dk'da bir
         </span>
       </div>
     </div>
@@ -143,7 +139,7 @@ function KurItem({
   const renkSinifi = yon === "up" ? "text-green-600" : yon === "down" ? "text-red-600" : "text-gray-900";
 
   return (
-    <span className="flex items-center gap-1.5">
+    <span className="flex shrink-0 items-center gap-1">
       <span className="text-gray-500">{label}</span>
       <span className={`font-medium ${renkSinifi}`}>
         {yon === "up" && "▲ "}

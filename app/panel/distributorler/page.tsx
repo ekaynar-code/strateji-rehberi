@@ -4,7 +4,6 @@ import { useEffect, useState, useMemo } from "react";
 import RequireAuth from "@/components/RequireAuth";
 import TopBar from "@/components/TopBar";
 import PanelTabs from "@/components/PanelTabs";
-import KurSeridi from "@/components/KurSeridi";
 import DistributorForm from "@/components/DistributorForm";
 import DistributorCard from "@/components/DistributorCard";
 import {
@@ -21,7 +20,6 @@ export default function PanelPage() {
     <RequireAuth>
       <TopBar />
       <PanelTabs />
-      <KurSeridi />
       <PanelContent />
     </RequireAuth>
   );
