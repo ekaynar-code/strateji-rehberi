@@ -16,6 +16,7 @@ export type Bolge = "korfez" | "balkanlar" | "afrika" | "turkiye";
 export type Profil = "distributor" | "fitout" | "uretici" | "diger";
 export type Durum = "arastirmada" | "temas_edildi" | "yanit_bekleniyor" | "gorusme_planlandi" | "anlasma" | "olumsuz";
 export type ParaBirimi = "TRY" | "USD" | "EUR";
+export type FiyatPozisyonu = "dusuk" | "orta" | "yuksek";
 
 export interface Distributor {
   id: string;
@@ -30,9 +31,20 @@ export interface Distributor {
   tahminiCiro?: number; // anlaşma durumunda tahmini yıllık ciro (girilen para biriminde)
   tahminiCiroParaBirimi?: ParaBirimi;
   kayipSebebi?: string; // durum "olumsuz" olduğunda opsiyonel not
+  // Rakip istihbaratı alanları — profil "uretici" olduğunda kullanılır
+  urunSegmenti?: string; // örn. "yangın kapısı, otel projeleri"
+  fiyatPozisyonu?: FiyatPozisyonu;
+  gucluYonler?: string;
+  zayifYonler?: string;
   createdAt?: Timestamp;
   updatedAt?: Timestamp;
 }
+
+export const FIYAT_POZISYONU_LABEL: Record<FiyatPozisyonu, string> = {
+  dusuk: "Düşük fiyat",
+  orta: "Orta segment",
+  yuksek: "Yüksek fiyat / premium",
+};
 
 export const BOLGE_LABEL: Record<Bolge, string> = {
   turkiye: "Türkiye (yurt içi)",

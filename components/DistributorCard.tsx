@@ -6,10 +6,12 @@ import {
   DURUM_LABEL,
   PROFIL_LABEL,
   BOLGE_LABEL,
+  FIYAT_POZISYONU_LABEL,
   updateDistributor,
   deleteDistributor,
   type Durum,
   type ParaBirimi,
+  type FiyatPozisyonu,
 } from "@/lib/distributors";
 
 const DURUM_RENK: Record<Durum, string> = {
@@ -23,6 +25,7 @@ const DURUM_RENK: Record<Durum, string> = {
 
 const PARA_BIRIMLERI: ParaBirimi[] = ["TRY", "USD", "EUR"];
 const PARA_SEMBOLU: Record<ParaBirimi, string> = { TRY: "₺", USD: "$", EUR: "€" };
+const FIYAT_POZISYONLARI: FiyatPozisyonu[] = ["dusuk", "orta", "yuksek"];
 
 function formatTutar(deger: number, paraBirimi: ParaBirimi): string {
   return `${PARA_SEMBOLU[paraBirimi]}${deger.toLocaleString("tr-TR", { maximumFractionDigits: 0 })}`;
@@ -34,6 +37,11 @@ export default function DistributorCard({ item }: { item: Distributor }) {
   const [ciroGirisi, setCiroGirisi] = useState(item.tahminiCiro?.toString() || "");
   const [paraBirimiGirisi, setParaBirimiGirisi] = useState<ParaBirimi>(item.tahminiCiroParaBirimi || "TRY");
   const [kayipGirisi, setKayipGirisi] = useState(item.kayipSebebi || "");
+  const [rakipFormAcik, setRakipFormAcik] = useState(false);
+  const [urunSegmentiGirisi, setUrunSegmentiGirisi] = useState(item.urunSegmenti || "");
+  const [fiyatPozisyonuGirisi, setFiyatPozisyonuGirisi] = useState<FiyatPozisyonu | "">(item.fiyatPozisyonu || "");
+  const [gucluYonlerGirisi, setGucluYonlerGirisi] = useState(item.gucluYonler || "");
+  const [zayifYonlerGirisi, setZayifYonlerGirisi] = useState(item.zayifYonler || "");
 
   async function handleDurumChange(yeniDurum: Durum) {
     setBusy(true);
@@ -65,6 +73,21 @@ export default function DistributorCard({ item }: { item: Distributor }) {
     }
   }
 
+  async function handleRakipBilgiKaydet() {
+    setBusy(true);
+    try {
+      await updateDistributor(item.id, {
+        urunSegmenti: urunSegmentiGirisi.trim() || undefined,
+        fiyatPozisyonu: fiyatPozisyonuGirisi || undefined,
+        gucluYonler: gucluYonlerGirisi.trim() || undefined,
+        zayifYonler: zayifYonlerGirisi.trim() || undefined,
+      });
+      setRakipFormAcik(false);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function handleDelete() {
     setBusy(true);
     try {
@@ -73,6 +96,8 @@ export default function DistributorCard({ item }: { item: Distributor }) {
       setBusy(false);
     }
   }
+
+  const rakipBilgisiVar = item.urunSegmenti || item.fiyatPozisyonu || item.gucluYonler || item.zayifYonler;
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-4">
@@ -167,6 +192,100 @@ export default function DistributorCard({ item }: { item: Distributor }) {
                 Kaydet
               </button>
             </div>
+          )}
+        </div>
+      )}
+
+      {item.profil === "uretici" && (
+        <div className="mt-3 rounded-lg bg-gray-50 p-2.5">
+          {rakipBilgisiVar && !rakipFormAcik ? (
+            <div className="space-y-1 text-sm">
+              {item.urunSegmenti && (
+                <div>
+                  <span className="text-gray-500">Ürün segmenti: </span>
+                  <span className="text-gray-800">{item.urunSegmenti}</span>
+                </div>
+              )}
+              {item.fiyatPozisyonu && (
+                <div>
+                  <span className="text-gray-500">Fiyat pozisyonu: </span>
+                  <span className="text-gray-800">{FIYAT_POZISYONU_LABEL[item.fiyatPozisyonu]}</span>
+                </div>
+              )}
+              {item.gucluYonler && (
+                <div>
+                  <span className="text-gray-500">Güçlü yönler: </span>
+                  <span className="text-gray-800">{item.gucluYonler}</span>
+                </div>
+              )}
+              {item.zayifYonler && (
+                <div>
+                  <span className="text-gray-500">Zayıf yönler: </span>
+                  <span className="text-gray-800">{item.zayifYonler}</span>
+                </div>
+              )}
+              <button
+                onClick={() => setRakipFormAcik(true)}
+                className="mt-1 text-xs text-gray-400 hover:text-brand-500"
+              >
+                Düzenle
+              </button>
+            </div>
+          ) : rakipFormAcik ? (
+            <div className="space-y-2">
+              <input
+                value={urunSegmentiGirisi}
+                onChange={(e) => setUrunSegmentiGirisi(e.target.value)}
+                placeholder="Ürün segmenti (örn. yangın kapısı, otel projeleri)"
+                className="w-full rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-brand-400"
+              />
+              <select
+                value={fiyatPozisyonuGirisi}
+                onChange={(e) => setFiyatPozisyonuGirisi(e.target.value as FiyatPozisyonu)}
+                className="w-full rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-brand-400"
+              >
+                <option value="">Fiyat pozisyonu seçin</option>
+                {FIYAT_POZISYONLARI.map((f) => (
+                  <option key={f} value={f}>
+                    {FIYAT_POZISYONU_LABEL[f]}
+                  </option>
+                ))}
+              </select>
+              <input
+                value={gucluYonlerGirisi}
+                onChange={(e) => setGucluYonlerGirisi(e.target.value)}
+                placeholder="Güçlü yönler"
+                className="w-full rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-brand-400"
+              />
+              <input
+                value={zayifYonlerGirisi}
+                onChange={(e) => setZayifYonlerGirisi(e.target.value)}
+                placeholder="Zayıf yönler"
+                className="w-full rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-brand-400"
+              />
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setRakipFormAcik(false)}
+                  className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs text-gray-700 hover:bg-white"
+                >
+                  Vazgeç
+                </button>
+                <button
+                  onClick={handleRakipBilgiKaydet}
+                  disabled={busy}
+                  className="rounded-lg bg-gray-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-900"
+                >
+                  Kaydet
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => setRakipFormAcik(true)}
+              className="text-xs text-gray-400 hover:text-brand-500"
+            >
+              + Rakip bilgisi ekle (ürün segmenti, fiyat, güçlü/zayıf yönler)
+            </button>
           )}
         </div>
       )}

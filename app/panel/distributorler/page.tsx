@@ -35,6 +35,7 @@ function PanelContent() {
   const [showCsvForm, setShowCsvForm] = useState(false);
   const [bolgeFiltre, setBolgeFiltre] = useState<Bolge | "hepsi">("hepsi");
   const [gorunum, setGorunum] = useState<"liste" | "kanban">("liste");
+  const [sadeceRakipler, setSadeceRakipler] = useState(false);
 
   useEffect(() => {
     const unsubscribe = subscribeDistributors(
@@ -50,10 +51,13 @@ function PanelContent() {
     return () => unsubscribe();
   }, []);
 
-  const filtered = useMemo(
-    () => (bolgeFiltre === "hepsi" ? items : items.filter((i) => i.bolge === bolgeFiltre)),
-    [items, bolgeFiltre]
-  );
+  const filtered = useMemo(() => {
+    let sonuc = bolgeFiltre === "hepsi" ? items : items.filter((i) => i.bolge === bolgeFiltre);
+    if (sadeceRakipler) sonuc = sonuc.filter((i) => i.profil === "uretici");
+    return sonuc;
+  }, [items, bolgeFiltre, sadeceRakipler]);
+
+  const rakipSayisi = useMemo(() => items.filter((i) => i.profil === "uretici").length, [items]);
 
   return (
     <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-5 sm:py-6">
@@ -113,7 +117,7 @@ function PanelContent() {
         </div>
       )}
 
-      <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
+      <div className="mb-4 flex flex-wrap items-center gap-2 overflow-x-auto pb-1">
         {BOLGE_FILTRELERI.map((b) => (
           <button
             key={b}
@@ -127,6 +131,18 @@ function PanelContent() {
             {b === "hepsi" ? "Tümü" : BOLGE_LABEL[b]}
           </button>
         ))}
+        {rakipSayisi > 0 && (
+          <button
+            onClick={() => setSadeceRakipler((s) => !s)}
+            className={`shrink-0 rounded-lg px-3 py-1.5 text-sm transition ${
+              sadeceRakipler
+                ? "bg-gray-800 text-white"
+                : "border border-gray-300 text-gray-600 hover:bg-gray-50"
+            }`}
+          >
+            Sadece rakipler ({rakipSayisi})
+          </button>
+        )}
       </div>
 
       {loading && <p className="text-sm text-gray-500">Yükleniyor…</p>}
