@@ -4,36 +4,44 @@ import { useEffect, useState, useMemo } from "react";
 import RequireAuth from "@/components/RequireAuth";
 import TopBar from "@/components/TopBar";
 import PanelTabs from "@/components/PanelTabs";
-import DistributorForm from "@/components/DistributorForm";
-import DistributorCard from "@/components/DistributorCard";
+import FuarForm from "@/components/FuarForm";
+import FuarCard from "@/components/FuarCard";
 import {
-  subscribeDistributors,
-  type Distributor,
-  type Bolge,
-  BOLGE_LABEL,
-} from "@/lib/distributors";
+  subscribeFuarlar,
+  type Fuar,
+  type FuarBolge,
+  FUAR_BOLGE_LABEL,
+  kalanGun,
+} from "@/lib/fuarlar";
 
-const BOLGE_FILTRELERI: (Bolge | "hepsi")[] = ["hepsi", "korfez", "balkanlar", "afrika"];
+const BOLGE_FILTRELERI: (FuarBolge | "hepsi")[] = [
+  "hepsi",
+  "korfez",
+  "balkanlar",
+  "afrika",
+  "yurt_ici",
+  "diger",
+];
 
-export default function PanelPage() {
+export default function FuarlarPage() {
   return (
     <RequireAuth>
       <TopBar />
       <PanelTabs />
-      <PanelContent />
+      <FuarlarContent />
     </RequireAuth>
   );
 }
 
-function PanelContent() {
-  const [items, setItems] = useState<Distributor[]>([]);
+function FuarlarContent() {
+  const [items, setItems] = useState<Fuar[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showForm, setShowForm] = useState(false);
-  const [bolgeFiltre, setBolgeFiltre] = useState<Bolge | "hepsi">("hepsi");
+  const [bolgeFiltre, setBolgeFiltre] = useState<FuarBolge | "hepsi">("hepsi");
 
   useEffect(() => {
-    const unsubscribe = subscribeDistributors(
+    const unsubscribe = subscribeFuarlar(
       (data) => {
         setItems(data);
         setLoading(false);
@@ -51,28 +59,38 @@ function PanelContent() {
     [items, bolgeFiltre]
   );
 
+  const yaklasanSayisi = useMemo(
+    () =>
+      items.filter((i) => {
+        const gun = kalanGun(i.tarih);
+        return gun >= 0 && gun <= 30 && i.durum !== "tamamlandi" && i.durum !== "katilinmayacak";
+      }).length,
+    [items]
+  );
+
   return (
     <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-5 sm:py-6">
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-lg font-medium text-stone-900">
-            Distribütör ve tedarikçi ortağı takibi
-          </h1>
+          <h1 className="text-lg font-medium text-stone-900">Fuar ve etkinlik takibi</h1>
           <p className="text-sm text-stone-500">
-            {items.length} kayıt · {filtered.length} gösteriliyor
+            {items.length} kayıt
+            {yaklasanSayisi > 0 && (
+              <span className="text-amber-700"> · {yaklasanSayisi} tanesi 30 gün içinde</span>
+            )}
           </p>
         </div>
         <button
           onClick={() => setShowForm((s) => !s)}
           className="w-full rounded-lg bg-stone-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-stone-800 sm:w-auto sm:py-2"
         >
-          {showForm ? "Formu kapat" : "+ Yeni kayıt"}
+          {showForm ? "Formu kapat" : "+ Yeni etkinlik"}
         </button>
       </div>
 
       {showForm && (
         <div className="mb-5">
-          <DistributorForm onDone={() => setShowForm(false)} />
+          <FuarForm onDone={() => setShowForm(false)} />
         </div>
       )}
 
@@ -87,7 +105,7 @@ function PanelContent() {
                 : "border border-stone-300 text-stone-600 hover:bg-stone-50"
             }`}
           >
-            {b === "hepsi" ? "Tümü" : BOLGE_LABEL[b]}
+            {b === "hepsi" ? "Tümü" : FUAR_BOLGE_LABEL[b]}
           </button>
         ))}
       </div>
@@ -99,7 +117,7 @@ function PanelContent() {
         <div className="rounded-xl border border-dashed border-stone-300 p-8 text-center">
           <p className="text-sm text-stone-500">
             {items.length === 0
-              ? "Henüz kayıt yok. İlk distribütör/tedarikçi ortağı adayını ekleyin."
+              ? "Henüz kayıt yok. İlk fuar veya etkinliği ekleyin."
               : "Bu bölgede kayıt yok."}
           </p>
         </div>
@@ -107,7 +125,7 @@ function PanelContent() {
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {filtered.map((item) => (
-          <DistributorCard key={item.id} item={item} />
+          <FuarCard key={item.id} item={item} />
         ))}
       </div>
     </main>

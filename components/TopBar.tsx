@@ -27,7 +27,7 @@ export default function TopBar() {
         </div>
         <div className="flex items-center gap-3">
           {user?.email && (
-            <span className="text-sm text-stone-500">{user.email}</span>
+            <span className="hidden text-sm text-stone-500 sm:inline">{user.email}</span>
           )}
           <button
             onClick={handleSignOut}

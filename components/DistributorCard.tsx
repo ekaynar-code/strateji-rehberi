@@ -44,8 +44,8 @@ export default function DistributorCard({ item }: { item: Distributor }) {
 
   return (
     <div className="rounded-xl border border-stone-200 bg-white p-4">
-      <div className="flex items-start justify-between gap-3">
-        <div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
           <div className="font-medium text-stone-900">{item.firmaAdi}</div>
           <div className="mt-0.5 text-sm text-stone-500">
             {item.ulke} · {BOLGE_LABEL[item.bolge]} · {PROFIL_LABEL[item.profil]}
@@ -55,7 +55,7 @@ export default function DistributorCard({ item }: { item: Distributor }) {
           value={item.durum}
           onChange={(e) => handleDurumChange(e.target.value as Durum)}
           disabled={busy}
-          className={`shrink-0 rounded-lg border-0 px-2.5 py-1 text-xs font-medium outline-none ${DURUM_RENK[item.durum]}`}
+          className={`w-full shrink-0 rounded-lg border-0 px-2.5 py-1.5 text-sm font-medium outline-none sm:w-auto sm:py-1 sm:text-xs ${DURUM_RENK[item.durum]}`}
         >
           {(Object.keys(DURUM_LABEL) as Durum[]).map((d) => (
             <option key={d} value={d}>
