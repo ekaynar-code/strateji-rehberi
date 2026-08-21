@@ -4,8 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const SEKMELER = [
-  { href: "/panel", label: "Distribütörler" },
+  { href: "/panel", label: "Genel Bakış" },
+  { href: "/panel/distributorler", label: "Distribütörler" },
   { href: "/panel/fuarlar", label: "Fuarlar" },
+  { href: "/panel/yapilacaklar", label: "Yapılacaklar" },
 ];
 
 export default function PanelTabs() {
