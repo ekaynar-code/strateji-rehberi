@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import RequireAuth from "@/components/RequireAuth";
 import TopBar from "@/components/TopBar";
@@ -16,12 +17,15 @@ import {
   type Fuar,
   kalanGun,
 } from "@/lib/fuarlar";
+import { subscribeHaberSorgulari, type HaberSorgusu } from "@/lib/haberSorgulari";
+import { haberleriGetir, type HaberOgesi } from "@/lib/haberler";
 
 export default function GenelBakisPage() {
   return (
     <RequireAuth>
       <TopBar />
       <PanelTabs />
+      <KurSeridi />
       <GenelBakisContent />
     </RequireAuth>
   );
@@ -33,9 +37,12 @@ function formatTarih(tarih: string): string {
 }
 
 function GenelBakisContent() {
+  const router = useRouter();
   const [distributorler, setDistributorler] = useState<Distributor[]>([]);
   const [fuarlar, setFuarlar] = useState<Fuar[]>([]);
   const [loading, setLoading] = useState(true);
+  const [onemliHaberler, setOnemliHaberler] = useState<HaberOgesi[]>([]);
+  const [haberYukleniyor, setHaberYukleniyor] = useState(true);
 
   useEffect(() => {
     let d1 = false;
@@ -70,6 +77,40 @@ function GenelBakisContent() {
     return () => {
       unsub1();
       unsub2();
+    };
+  }, []);
+
+  // Piyasa Nabzı'ndaki takip konularına göre en güncel önemli haberleri çek.
+  useEffect(() => {
+    let iptal = false;
+
+    const unsub = subscribeHaberSorgulari(
+      async (sorgular: HaberSorgusu[]) => {
+        if (sorgular.length === 0) {
+          if (!iptal) setHaberYukleniyor(false);
+          return;
+        }
+        try {
+          const sonuclar = await Promise.all(
+            sorgular.map((s) =>
+              haberleriGetir(s.sorgu, s.baslik).catch(() => [] as HaberOgesi[])
+            )
+          );
+          if (iptal) return;
+          const tumu = sonuclar.flat().filter((h) => h.onemliMi);
+          setOnemliHaberler(tumu.slice(0, 3));
+        } finally {
+          if (!iptal) setHaberYukleniyor(false);
+        }
+      },
+      () => {
+        if (!iptal) setHaberYukleniyor(false);
+      }
+    );
+
+    return () => {
+      iptal = true;
+      unsub();
     };
   }, []);
 
@@ -117,8 +158,6 @@ function GenelBakisContent() {
         <p className="text-sm text-gray-500">İhracat ve pazar geliştirme faaliyetlerinin özeti</p>
       </div>
 
-      <KurSeridi />
-
       {loading ? (
         <p className="text-sm text-gray-500">Yükleniyor…</p>
       ) : (
@@ -142,6 +181,33 @@ function GenelBakisContent() {
               <div className="mt-1 text-2xl font-medium text-amber-700">{yaklasanFuarlar.length}</div>
             </div>
           </div>
+
+          {/* Piyasa Nabzı özeti */}
+          <button
+            onClick={() => router.push("/panel/piyasa-nabzi")}
+            className="mb-6 block w-full rounded-xl border border-gray-200 bg-white p-4 text-left transition hover:border-brand-300 hover:bg-brand-50/30"
+          >
+            <div className="mb-3 flex items-center justify-between">
+              <span className="text-sm font-medium text-gray-700">Piyasa Nabzı</span>
+              <span className="text-xs text-gray-400">Tümünü gör →</span>
+            </div>
+            {haberYukleniyor ? (
+              <p className="text-sm text-gray-400">Haberler yükleniyor…</p>
+            ) : onemliHaberler.length === 0 ? (
+              <p className="text-sm text-gray-400">Şu anda dikkat çekici bir haber yok.</p>
+            ) : (
+              <div className="flex flex-col gap-1.5">
+                {onemliHaberler.map((h, i) => (
+                  <div key={i} className="flex items-start gap-2 text-sm">
+                    <span className="mt-0.5 shrink-0 rounded-full bg-brand-100 px-1.5 py-0.5 text-[10px] font-medium text-brand-600">
+                      dikkat
+                    </span>
+                    <span className="text-gray-800">{h.title}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </button>
 
           {/* Bölge dağılımı */}
           {distributorler.length > 0 && (
