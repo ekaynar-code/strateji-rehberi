@@ -113,13 +113,15 @@ export default function KurSeridi() {
 
   return (
     <div className="border-b border-gray-100 bg-gray-50/50 px-4 py-1.5 text-xs">
-      <div className="mx-auto flex max-w-5xl items-center gap-x-4 overflow-x-auto whitespace-nowrap">
-        <KurItem label="USD/TRY" deger={kur.usdTry} yon={yonler.usdTry} />
-        <KurItem label="EUR/TRY" deger={kur.eurTry} yon={yonler.eurTry} />
-        <KurItem label="Gram Altın" deger={kur.altinTry} yon={yonler.altinTry} prefix="₺" />
-        <span className="ml-auto shrink-0 text-gray-400">
-          {dakikaOnce <= 0 ? "az önce" : `${dakikaOnce} dk önce`} · {YENILEME_DAKIKA} dk'da bir
-        </span>
+      <div className="mx-auto max-w-5xl">
+        <div className="flex items-center gap-x-4 overflow-x-auto whitespace-nowrap">
+          <KurItem label="USD/TRY" deger={kur.usdTry} yon={yonler.usdTry} />
+          <KurItem label="EUR/TRY" deger={kur.eurTry} yon={yonler.eurTry} />
+          <KurItem label="Gram Altın" deger={kur.altinTry} yon={yonler.altinTry} prefix="₺" />
+        </div>
+        <div className="mt-0.5 text-gray-400">
+          {dakikaOnce <= 0 ? "az önce güncellendi" : `${dakikaOnce} dk önce güncellendi`} · {YENILEME_DAKIKA} dk'da bir
+        </div>
       </div>
     </div>
   );

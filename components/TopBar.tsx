@@ -19,12 +19,17 @@ export default function TopBar() {
     <header className="sticky top-0 z-10 bg-white">
       <div className="border-b border-gray-200">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-          <div>
-            <div className="text-xs font-medium tracking-wide text-gray-500 uppercase">
-              strateji rehberi
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gray-100">
+              <span className="text-lg font-bold text-brand-400">Pi</span>
             </div>
-            <div className="text-base font-medium text-gray-900">
-              satış ve ihracat paneli
+            <div>
+              <div className="text-xs font-medium tracking-wide text-gray-500 uppercase">
+                strateji rehberi
+              </div>
+              <div className="text-base font-medium text-gray-900">
+                iyi analiz-doğru karar
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-3">

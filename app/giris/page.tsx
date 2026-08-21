@@ -42,11 +42,14 @@ export default function GirisPage() {
     <div className="flex flex-1 items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
+          <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100">
+            <span className="text-xl font-bold text-brand-400">Pi</span>
+          </div>
           <div className="text-xs font-medium tracking-wide text-gray-500 uppercase">
             strateji rehberi
           </div>
           <h1 className="mt-1 text-xl font-medium text-gray-900">
-            satış ve ihracat paneli
+            iyi analiz-doğru karar
           </h1>
         </div>
 
