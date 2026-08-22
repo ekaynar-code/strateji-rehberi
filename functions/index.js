@@ -64,16 +64,27 @@ function parseRssItems(xml, limit = 8) {
 function fetchUrl(url) {
   return new Promise((resolve, reject) => {
     https
-      .get(url, { headers: { "User-Agent": "Mozilla/5.0 (compatible; StratejiRehberi/1.0)" } }, (res) => {
-        if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-          // Google News bazen yönlendirme yapabilir, takip edelim.
-          fetchUrl(res.headers.location).then(resolve).catch(reject);
-          return;
+      .get(
+        url,
+        {
+          headers: {
+            "User-Agent":
+              "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept-Encoding": "identity",
+            "Accept-Language": "tr-TR,tr;q=0.9",
+          },
+        },
+        (res) => {
+          if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+            // Google News bazen yönlendirme yapabilir, takip edelim.
+            fetchUrl(res.headers.location).then(resolve).catch(reject);
+            return;
+          }
+          let data = "";
+          res.on("data", (chunk) => (data += chunk));
+          res.on("end", () => resolve(data));
         }
-        let data = "";
-        res.on("data", (chunk) => (data += chunk));
-        res.on("end", () => resolve(data));
-      })
+      )
       .on("error", reject);
   });
 }
@@ -98,6 +109,13 @@ exports.haberleriGetir = onRequest(
       )}&hl=tr&gl=TR&ceid=TR:tr`;
       const xml = await fetchUrl(rssUrl);
       const items = parseRssItems(xml, 8);
+
+      if (items.length === 0) {
+        // Teşhis için: hiç haber bulunamadıysa ham yanıtın başını da dönelim.
+        res.status(200).json({ items, debugRawStart: xml.slice(0, 300) });
+        return;
+      }
+
       res.status(200).json({ items });
     } catch (err) {
       res.status(500).json({ error: "RSS alınamadı", detail: String(err) });
