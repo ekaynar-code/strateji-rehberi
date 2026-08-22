@@ -65,7 +65,7 @@ function FuarlarContent() {
     () =>
       items.filter((i) => {
         const gun = kalanGun(i.tarih);
-        return gun >= 0 && gun <= 30 && i.durum !== "tamamlandi" && i.durum !== "katilinmayacak";
+        return gun >= 0 && gun <= 60 && i.durum !== "tamamlandi" && i.durum !== "katilinmayacak";
       }).length,
     [items]
   );
@@ -78,7 +78,7 @@ function FuarlarContent() {
           <p className="text-sm text-gray-500">
             {items.length} kayıt
             {yaklasanSayisi > 0 && (
-              <span className="text-amber-700"> · {yaklasanSayisi} tanesi 30 gün içinde</span>
+              <span className="text-amber-700"> · {yaklasanSayisi} tanesi 60 gün içinde</span>
             )}
           </p>
         </div>

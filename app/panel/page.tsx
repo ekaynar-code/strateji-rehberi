@@ -199,7 +199,7 @@ function GenelBakisContent() {
       fuarlar
         .filter((f) => {
           const gun = kalanGun(f.tarih);
-          return gun >= 0 && gun <= 30 && f.durum !== "tamamlandi" && f.durum !== "katilinmayacak";
+          return gun >= 0 && gun <= 60 && f.durum !== "tamamlandi" && f.durum !== "katilinmayacak";
         })
         .sort((a, b) => kalanGun(a.tarih) - kalanGun(b.tarih)),
     [fuarlar]
@@ -372,7 +372,7 @@ function GenelBakisContent() {
               onClick={() => router.push("/panel/fuarlar")}
               className="rounded-xl border border-gray-200 bg-white p-4 text-left transition hover:border-brand-300 hover:bg-brand-50/30"
             >
-              <div className="text-xs text-gray-500">30 gün içindeki fuar</div>
+              <div className="text-xs text-gray-500">60 gün içindeki fuar</div>
               <div className="mt-1 text-2xl font-medium text-amber-700">{yaklasanFuarlar.length}</div>
             </button>
           </div>
@@ -422,7 +422,7 @@ function GenelBakisContent() {
           {/* Yaklaşan fuarlar */}
           <div className="mb-6">
             <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-sm font-medium text-gray-700">Yaklaşan fuarlar (30 gün içinde)</h2>
+              <h2 className="text-sm font-medium text-gray-700">Yaklaşan fuarlar (60 gün içinde)</h2>
               <Link href="/panel/fuarlar" className="text-sm text-gray-500 hover:text-gray-900 hover:underline">
                 Tümünü gör
               </Link>

@@ -77,7 +77,7 @@ export function aksiyonlariHesapla(girdi: AksiyonMotoruGirdisi): AksiyonOnerisi[
   girdi.fuarlar
     .filter((f) => {
       const gun = kalanGun(f.tarih);
-      return gun >= 0 && gun <= 30 && f.durum !== "tamamlandi" && f.durum !== "katilinmayacak";
+      return gun >= 0 && gun <= 60 && f.durum !== "tamamlandi" && f.durum !== "katilinmayacak";
     })
     .forEach((f) => {
       const fuarBolgesi = fuarBolgesindenDistributorBolgesi(f.bolge);
