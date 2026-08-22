@@ -59,6 +59,7 @@ function GenelBakisContent() {
   const [kur, setKur] = useState<KurVeri>({ usdTry: null, eurTry: null });
   const [hedefDuzenle, setHedefDuzenle] = useState(false);
   const [hedefGirisi, setHedefGirisi] = useState("");
+  const [hedefDetayAcik, setHedefDetayAcik] = useState(false);
   const [manuelKayitlar, setManuelKayitlar] = useState<ManuelCiroKaydi[]>([]);
   const [manuelFormAcik, setManuelFormAcik] = useState(false);
 
@@ -320,16 +321,27 @@ function GenelBakisContent() {
                     style={{ width: `${hedefYuzde}%` }}
                   />
                 </div>
-                <div className="flex items-center justify-between text-xs text-gray-500">
-                  <span>
-                    ₺{Math.round(gerceklesenCiroTry).toLocaleString("tr-TR")} / ₺
-                    {hedef.hedefTry.toLocaleString("tr-TR")}
+                <button
+                  onClick={() => setHedefDetayAcik((a) => !a)}
+                  className="flex w-full items-center justify-between text-xs text-gray-500"
+                >
+                  {hedefDetayAcik ? (
+                    <span>
+                      ₺{Math.round(gerceklesenCiroTry).toLocaleString("tr-TR")} / ₺
+                      {hedef.hedefTry.toLocaleString("tr-TR")}
+                    </span>
+                  ) : (
+                    <span className="tracking-widest">**** / ****</span>
+                  )}
+                  <span className="font-medium text-brand-600">
+                    {hedefDetayAcik ? `%${hedefYuzde}` : "****"}
                   </span>
-                  <span className="font-medium text-brand-600">%{hedefYuzde}</span>
-                </div>
-                <p className="mt-1 text-xs text-gray-400">
-                  Satış fırsatlarındaki anlaşmalar ve manuel kayıtlar güncel kurdan TRY&apos;ye çevrilerek toplanır.
-                </p>
+                </button>
+                {hedefDetayAcik && (
+                  <p className="mt-1 text-xs text-gray-400">
+                    Satış fırsatlarındaki anlaşmalar ve manuel kayıtlar güncel kurdan TRY&apos;ye çevrilerek toplanır.
+                  </p>
+                )}
               </>
             ) : (
               <p className="text-sm text-gray-500">
