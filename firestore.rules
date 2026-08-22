@@ -38,6 +38,12 @@ service cloud.firestore {
       allow read, write: if request.auth != null;
     }
 
+    // Her kullanıcı sadece kendi PIN kaydına erişebilir — belge ID'si
+    // kullanıcının kendi UID'si ile eşleşmeli.
+    match /kullanici_pin/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
     // Başka bir koleksiyona (örn. ihaleler) izin verilmedi —
     // ileride modül eklerken buraya yeni match blokları eklenecek.
   }

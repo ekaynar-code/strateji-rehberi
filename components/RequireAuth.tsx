@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
+import SecurityGuard from "@/components/SecurityGuard";
 
 export default function RequireAuth({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -20,5 +21,5 @@ export default function RequireAuth({ children }: { children: React.ReactNode })
     );
   }
 
-  return <>{children}</>;
+  return <SecurityGuard>{children}</SecurityGuard>;
 }
