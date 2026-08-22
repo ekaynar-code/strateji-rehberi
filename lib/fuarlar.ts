@@ -89,6 +89,8 @@ export async function deleteFuar(id: string) {
   await deleteDoc(doc(db, COLLECTION, id));
 }
 
+import { csvAyristir } from "./csv";
+
 /** Bugünden itibaren kalan gün sayısı (negatifse geçmiş demektir). */
 export function kalanGun(tarih: string): number {
   const hedef = new Date(tarih + "T00:00:00");
@@ -97,3 +99,73 @@ export function kalanGun(tarih: string): number {
   const fark = hedef.getTime() - bugun.getTime();
   return Math.round(fark / (1000 * 60 * 60 * 24));
 }
+
+const FUAR_CSV_BASLIKLARI = ["ad", "lokasyon", "bolge", "tarih", "notlar"] as const;
+const GECERLI_FUAR_BOLGELER: FuarBolge[] = ["korfez", "balkanlar", "afrika", "yurt_ici", "diger"];
+
+export interface FuarCsvSatirSonucu {
+  satirNo: number;
+  ad: string;
+  basarili: boolean;
+  hata?: string;
+}
+
+/**
+ * CSV metnini fuar kayıtlarına çevirip Firestore'a tek tek ekler.
+ * Beklenen başlıklar: ad, lokasyon, bolge, tarih (YYYY-MM-DD), notlar
+ * (notlar opsiyonel; bolge geçerli değerlerden biri, tarih YYYY-MM-DD olmalı).
+ */
+export async function fuarCsvIceAktar(csvMetin: string): Promise<FuarCsvSatirSonucu[]> {
+  const satirlar = csvAyristir(csvMetin.trim());
+  if (satirlar.length === 0) return [];
+
+  const baslikSatiri = satirlar[0].map((h) => h.trim());
+  const veriSatirlari = satirlar.slice(1);
+
+  const sonuclar: FuarCsvSatirSonucu[] = [];
+
+  for (let i = 0; i < veriSatirlari.length; i++) {
+    const satirNo = i + 2;
+    const hucreler = veriSatirlari[i];
+    const kayit: Record<string, string> = {};
+    baslikSatiri.forEach((baslik, idx) => {
+      kayit[baslik] = (hucreler[idx] || "").trim();
+    });
+
+    const ad = kayit["ad"] || "";
+    const lokasyon = kayit["lokasyon"] || "";
+    const bolge = kayit["bolge"] as FuarBolge;
+    const tarih = kayit["tarih"] || "";
+
+    if (!ad || !lokasyon) {
+      sonuclar.push({ satirNo, ad: ad || "(boş)", basarili: false, hata: "Etkinlik adı veya lokasyon eksik" });
+      continue;
+    }
+    if (!GECERLI_FUAR_BOLGELER.includes(bolge)) {
+      sonuclar.push({ satirNo, ad, basarili: false, hata: `Geçersiz bölge: "${kayit["bolge"]}"` });
+      continue;
+    }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(tarih)) {
+      sonuclar.push({ satirNo, ad, basarili: false, hata: `Geçersiz tarih formatı (YYYY-MM-DD olmalı): "${tarih}"` });
+      continue;
+    }
+
+    try {
+      await addFuar({
+        ad,
+        lokasyon,
+        bolge,
+        tarih,
+        durum: "izleniyor",
+        notlar: kayit["notlar"] || undefined,
+      });
+      sonuclar.push({ satirNo, ad, basarili: true });
+    } catch (err) {
+      sonuclar.push({ satirNo, ad, basarili: false, hata: (err as Error).message });
+    }
+  }
+
+  return sonuclar;
+}
+
+export const FUAR_CSV_ORNEK_BASLIK = FUAR_CSV_BASLIKLARI.join(",");

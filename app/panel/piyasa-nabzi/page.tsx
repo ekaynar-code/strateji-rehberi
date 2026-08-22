@@ -222,11 +222,33 @@ function SorguBolumu({
   onSil: () => void;
 }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [genisletildi, setGenisletildi] = useState(false);
+
+  const siraliHaberler = [...haberler].sort(
+    (a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime()
+  );
+  const gosterilecekHaberler = genisletildi ? siraliHaberler : siraliHaberler.slice(0, 2);
+  const kalanSayi = siraliHaberler.length - 2;
 
   return (
     <div>
       <div className="mb-2 flex items-center justify-between">
-        <h2 className="text-sm font-medium text-gray-700">{sorgu.baslik}</h2>
+        <button
+          onClick={() => setGenisletildi((g) => !g)}
+          disabled={siraliHaberler.length <= 2}
+          className="flex items-center gap-1.5 text-left text-sm font-medium text-gray-700 hover:text-brand-500 disabled:hover:text-gray-700"
+        >
+          {siraliHaberler.length > 2 && (
+            <svg
+              viewBox="0 0 16 16"
+              fill="none"
+              className={`h-3.5 w-3.5 shrink-0 transition-transform ${genisletildi ? "rotate-90" : ""}`}
+            >
+              <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          )}
+          {sorgu.baslik}
+        </button>
         {confirmDelete ? (
           <div className="flex items-center gap-2 text-xs">
             <span className="text-gray-500">Silinsin mi?</span>
@@ -246,12 +268,12 @@ function SorguBolumu({
 
       {yukleniyor && <p className="text-sm text-gray-400">Haberler yükleniyor…</p>}
       {hata && <p className="text-sm text-gray-400">Bu konu için haberler şu anda alınamıyor.</p>}
-      {!yukleniyor && !hata && haberler.length === 0 && (
+      {!yukleniyor && !hata && siraliHaberler.length === 0 && (
         <p className="text-sm text-gray-400">Güncel haber bulunamadı.</p>
       )}
 
       <div className="flex flex-col gap-1.5">
-        {haberler.map((h, i) => (
+        {gosterilecekHaberler.map((h, i) => (
           <a
             key={i}
             href={h.link}
@@ -271,6 +293,15 @@ function SorguBolumu({
           </a>
         ))}
       </div>
+
+      {!genisletildi && kalanSayi > 0 && (
+        <button
+          onClick={() => setGenisletildi(true)}
+          className="mt-1.5 text-xs text-gray-400 hover:text-brand-500"
+        >
+          +{kalanSayi} haber daha
+        </button>
+      )}
     </div>
   );
 }

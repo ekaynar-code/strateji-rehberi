@@ -35,7 +35,7 @@ function PanelContent() {
   const [showCsvForm, setShowCsvForm] = useState(false);
   const [bolgeFiltre, setBolgeFiltre] = useState<Bolge | "hepsi">("hepsi");
   const [gorunum, setGorunum] = useState<"liste" | "kanban">("liste");
-  const [sadeceRakipler, setSadeceRakipler] = useState(false);
+  const [tipFiltre, setTipFiltre] = useState<"hepsi" | "rakip" | "musteri">("hepsi");
 
   useEffect(() => {
     const unsubscribe = subscribeDistributors(
@@ -53,11 +53,13 @@ function PanelContent() {
 
   const filtered = useMemo(() => {
     let sonuc = bolgeFiltre === "hepsi" ? items : items.filter((i) => i.bolge === bolgeFiltre);
-    if (sadeceRakipler) sonuc = sonuc.filter((i) => i.profil === "uretici");
+    if (tipFiltre === "rakip") sonuc = sonuc.filter((i) => i.profil === "uretici");
+    if (tipFiltre === "musteri") sonuc = sonuc.filter((i) => i.profil !== "uretici");
     return sonuc;
-  }, [items, bolgeFiltre, sadeceRakipler]);
+  }, [items, bolgeFiltre, tipFiltre]);
 
   const rakipSayisi = useMemo(() => items.filter((i) => i.profil === "uretici").length, [items]);
+  const musteriSayisi = useMemo(() => items.filter((i) => i.profil !== "uretici").length, [items]);
 
   return (
     <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-5 sm:py-6">
@@ -133,14 +135,26 @@ function PanelContent() {
         ))}
         {rakipSayisi > 0 && (
           <button
-            onClick={() => setSadeceRakipler((s) => !s)}
+            onClick={() => setTipFiltre((t) => (t === "rakip" ? "hepsi" : "rakip"))}
             className={`shrink-0 rounded-lg px-3 py-1.5 text-sm transition ${
-              sadeceRakipler
+              tipFiltre === "rakip"
                 ? "bg-gray-800 text-white"
                 : "border border-gray-300 text-gray-600 hover:bg-gray-50"
             }`}
           >
             Sadece rakipler ({rakipSayisi})
+          </button>
+        )}
+        {musteriSayisi > 0 && (
+          <button
+            onClick={() => setTipFiltre((t) => (t === "musteri" ? "hepsi" : "musteri"))}
+            className={`shrink-0 rounded-lg px-3 py-1.5 text-sm transition ${
+              tipFiltre === "musteri"
+                ? "bg-gray-800 text-white"
+                : "border border-gray-300 text-gray-600 hover:bg-gray-50"
+            }`}
+          >
+            Sadece müşteriler ({musteriSayisi})
           </button>
         )}
       </div>

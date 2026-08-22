@@ -5,7 +5,18 @@ import RequireAuth from "@/components/RequireAuth";
 import TopBar from "@/components/TopBar";
 import PanelTabs from "@/components/PanelTabs";
 import { useAuth } from "@/lib/AuthContext";
-import { subscribeTodos, addTodo, toggleTodo, deleteTodo, todoKalanGun, type Todo } from "@/lib/todos";
+import {
+  subscribeTodos,
+  addTodo,
+  toggleTodo,
+  deleteTodo,
+  todoKalanGun,
+  subscribeTodoNotlari,
+  todoNotuEkle,
+  todoNotuSil,
+  type Todo,
+  type TodoNotu,
+} from "@/lib/todos";
 
 export default function YapilacaklarPage() {
   return (
@@ -128,6 +139,25 @@ function YapilacaklarContent() {
 
 function TodoRow({ item }: { item: Todo }) {
   const [busy, setBusy] = useState(false);
+  const [notlarAcik, setNotlarAcik] = useState(false);
+  const [notlar, setNotlar] = useState<TodoNotu[]>([]);
+  const [notlarYuklendi, setNotlarYuklendi] = useState(false);
+  const [yeniNot, setYeniNot] = useState("");
+  const [notEkleniyor, setNotEkleniyor] = useState(false);
+
+  useEffect(() => {
+    if (!notlarAcik || notlarYuklendi) return;
+    const unsub = subscribeTodoNotlari(
+      item.id,
+      (data) => {
+        setNotlar(data);
+        setNotlarYuklendi(true);
+      },
+      () => setNotlarYuklendi(true)
+    );
+    return () => unsub();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [notlarAcik]);
 
   async function handleToggle() {
     setBusy(true);
@@ -147,56 +177,114 @@ function TodoRow({ item }: { item: Todo }) {
     }
   }
 
+  async function handleNotEkle(e: React.FormEvent) {
+    e.preventDefault();
+    if (!yeniNot.trim()) return;
+    setNotEkleniyor(true);
+    try {
+      await todoNotuEkle(item.id, yeniNot.trim());
+      setYeniNot("");
+    } finally {
+      setNotEkleniyor(false);
+    }
+  }
+
   const gun = item.sonTarih ? todoKalanGun(item.sonTarih) : null;
   const gecmis = gun !== null && gun < 0 && !item.tamamlandi;
   const yaklasiyor = gun !== null && gun >= 0 && gun <= 7 && !item.tamamlandi;
 
   return (
     <div
-      className={`flex items-center gap-3 rounded-xl border p-3 ${
+      className={`rounded-xl border p-3 ${
         item.tamamlandi ? "border-gray-100 bg-gray-50" : "border-gray-200 bg-white"
       }`}
     >
-      <button
-        onClick={handleToggle}
-        disabled={busy}
-        aria-label={item.tamamlandi ? "Tamamlanmadı olarak işaretle" : "Tamamlandı olarak işaretle"}
-        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 transition ${
-          item.tamamlandi
-            ? "border-brand-400 bg-brand-400 text-white"
-            : "border-gray-300 hover:border-brand-400"
-        }`}
-      >
-        {item.tamamlandi && (
-          <svg viewBox="0 0 16 16" fill="none" className="h-3.5 w-3.5">
-            <path d="M3 8.5L6.5 12L13 4.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        )}
-      </button>
+      <div className="flex items-center gap-3">
+        <button
+          onClick={handleToggle}
+          disabled={busy}
+          aria-label={item.tamamlandi ? "Tamamlanmadı olarak işaretle" : "Tamamlandı olarak işaretle"}
+          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 transition ${
+            item.tamamlandi
+              ? "border-brand-400 bg-brand-400 text-white"
+              : "border-gray-300 hover:border-brand-400"
+          }`}
+        >
+          {item.tamamlandi && (
+            <svg viewBox="0 0 16 16" fill="none" className="h-3.5 w-3.5">
+              <path d="M3 8.5L6.5 12L13 4.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          )}
+        </button>
 
-      <div className="flex-1 min-w-0">
-        <span className={`text-sm ${item.tamamlandi ? "text-gray-400 line-through" : "text-gray-900"}`}>
-          {item.baslik}
-        </span>
-        {item.sonTarih && (
-          <span
-            className={`ml-2 text-xs ${
-              gecmis ? "font-medium text-red-600" : yaklasiyor ? "font-medium text-brand-500" : "text-gray-400"
-            }`}
-          >
-            {formatTarih(item.sonTarih)}
-            {gecmis && " · süresi geçti"}
+        <div className="min-w-0 flex-1">
+          <span className={`text-sm ${item.tamamlandi ? "text-gray-400 line-through" : "text-gray-900"}`}>
+            {item.baslik}
           </span>
-        )}
+          {item.sonTarih && (
+            <span
+              className={`ml-2 text-xs ${
+                gecmis ? "font-medium text-red-600" : yaklasiyor ? "font-medium text-brand-500" : "text-gray-400"
+              }`}
+            >
+              {formatTarih(item.sonTarih)}
+              {gecmis && " · süresi geçti"}
+            </span>
+          )}
+        </div>
+
+        <button
+          onClick={() => setNotlarAcik((n) => !n)}
+          className="shrink-0 text-xs text-gray-400 hover:text-brand-500"
+        >
+          {notlarAcik ? "Notları gizle" : "Not ekle"}
+        </button>
+
+        <button
+          onClick={handleDelete}
+          disabled={busy}
+          className="shrink-0 text-xs text-gray-300 hover:text-red-600"
+        >
+          Sil
+        </button>
       </div>
 
-      <button
-        onClick={handleDelete}
-        disabled={busy}
-        className="shrink-0 text-xs text-gray-300 hover:text-red-600"
-      >
-        Sil
-      </button>
+      {notlarAcik && (
+        <div className="mt-2 ml-8 border-l-2 border-gray-100 pl-3">
+          {!notlarYuklendi && <p className="text-xs text-gray-400">Yükleniyor…</p>}
+          {notlarYuklendi && notlar.length === 0 && (
+            <p className="text-xs text-gray-400">Henüz alt not yok.</p>
+          )}
+          <div className="mb-2 flex flex-col gap-1">
+            {notlar.map((n) => (
+              <div key={n.id} className="flex items-start justify-between gap-2 text-xs">
+                <span className="text-gray-600">{n.metin}</span>
+                <button
+                  onClick={() => todoNotuSil(item.id, n.id)}
+                  className="shrink-0 text-gray-300 hover:text-red-600"
+                >
+                  Sil
+                </button>
+              </div>
+            ))}
+          </div>
+          <form onSubmit={handleNotEkle} className="flex gap-1.5">
+            <input
+              value={yeniNot}
+              onChange={(e) => setYeniNot(e.target.value)}
+              placeholder="Alt not ekle…"
+              className="flex-1 rounded-md border border-gray-200 px-2 py-1 text-xs outline-none focus:border-brand-400"
+            />
+            <button
+              type="submit"
+              disabled={notEkleniyor || !yeniNot.trim()}
+              className="shrink-0 rounded-md bg-gray-800 px-2.5 py-1 text-xs font-medium text-white hover:bg-gray-900 disabled:opacity-50"
+            >
+              Ekle
+            </button>
+          </form>
+        </div>
+      )}
     </div>
   );
 }

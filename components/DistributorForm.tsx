@@ -19,6 +19,7 @@ export default function DistributorForm({ onDone }: { onDone: () => void }) {
   const [firmaAdi, setFirmaAdi] = useState("");
   const [ulke, setUlke] = useState("");
   const [bolge, setBolge] = useState<Bolge>("balkanlar");
+  const [rakipMi, setRakipMi] = useState(false);
   const [profil, setProfil] = useState<Profil>("distributor");
   const [durum, setDurum] = useState<Durum>("arastirmada");
   const [iletisimKisisi, setIletisimKisisi] = useState("");
@@ -42,7 +43,7 @@ export default function DistributorForm({ onDone }: { onDone: () => void }) {
         firmaAdi: firmaAdi.trim(),
         ulke: ulke.trim(),
         bolge,
-        profil,
+        profil: rakipMi ? "uretici" : profil,
         durum,
         iletisimKisisi: iletisimKisisi.trim() || undefined,
         iletisimBilgisi: iletisimBilgisi.trim() || undefined,
@@ -61,6 +62,18 @@ export default function DistributorForm({ onDone }: { onDone: () => void }) {
       onSubmit={handleSubmit}
       className="rounded-xl border border-gray-200 bg-white p-5"
     >
+      <label className="mb-4 flex items-center gap-2 rounded-lg bg-gray-50 px-3 py-2.5 text-sm">
+        <input
+          type="checkbox"
+          checked={rakipMi}
+          onChange={(e) => setRakipMi(e.target.checked)}
+          className="h-4 w-4 rounded border-gray-300 text-brand-400 focus:ring-brand-400"
+        />
+        <span className="font-medium text-gray-700">
+          Bu bir rakip kaydı (müşteri/tedarikçi ortağı değil)
+        </span>
+      </label>
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
           <label className="mb-1.5 block text-sm font-medium text-gray-700">
@@ -100,22 +113,24 @@ export default function DistributorForm({ onDone }: { onDone: () => void }) {
             ))}
           </select>
         </div>
-        <div>
-          <label className="mb-1.5 block text-sm font-medium text-gray-700">
-            Profil
-          </label>
-          <select
-            value={profil}
-            onChange={(e) => setProfil(e.target.value as Profil)}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400"
-          >
-            {PROFILLER.map((p) => (
-              <option key={p} value={p}>
-                {PROFIL_LABEL[p]}
-              </option>
-            ))}
-          </select>
-        </div>
+        {!rakipMi && (
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">
+              Profil
+            </label>
+            <select
+              value={profil}
+              onChange={(e) => setProfil(e.target.value as Profil)}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400"
+            >
+              {PROFILLER.filter((p) => p !== "uretici").map((p) => (
+                <option key={p} value={p}>
+                  {PROFIL_LABEL[p]}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         <div>
           <label className="mb-1.5 block text-sm font-medium text-gray-700">
             Durum

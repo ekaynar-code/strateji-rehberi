@@ -61,6 +61,45 @@ export async function deleteTodo(id: string) {
   await deleteDoc(doc(db, COLLECTION, id));
 }
 
+// --- Alt notlar (bir göreve bağlı, zaman damgalı küçük notlar) ---
+
+export interface TodoNotu {
+  id: string;
+  metin: string;
+  createdAt?: Timestamp;
+}
+
+function notlarKoleksiyonu(todoId: string) {
+  return collection(db, COLLECTION, todoId, "notlar");
+}
+
+export function subscribeTodoNotlari(
+  todoId: string,
+  callback: (notlar: TodoNotu[]) => void,
+  onError: (err: Error) => void
+) {
+  const q = query(notlarKoleksiyonu(todoId), orderBy("createdAt", "asc"));
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const notlar = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as TodoNotu));
+      callback(notlar);
+    },
+    (err) => onError(err as Error)
+  );
+}
+
+export async function todoNotuEkle(todoId: string, metin: string) {
+  await addDoc(notlarKoleksiyonu(todoId), {
+    metin,
+    createdAt: serverTimestamp(),
+  });
+}
+
+export async function todoNotuSil(todoId: string, notId: string) {
+  await deleteDoc(doc(db, COLLECTION, todoId, "notlar", notId));
+}
+
 /** Bugünden itibaren kalan gün sayısı (negatifse geçmiş demektir). */
 export function todoKalanGun(sonTarih: string): number {
   const hedef = new Date(sonTarih + "T00:00:00");
