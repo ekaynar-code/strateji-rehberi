@@ -9,7 +9,6 @@ const SEKMELER = [
   { href: "/panel/fuarlar", label: "Fuarlar" },
   { href: "/panel/piyasa-nabzi", label: "Piyasa Nabzı" },
   { href: "/panel/yapilacaklar", label: "Yapılacaklar" },
-  { href: "/panel/kartvizitler", label: "Kartvizitler" },
 ];
 
 export default function PanelTabs() {
