@@ -8,6 +8,7 @@ import TopBar from "@/components/TopBar";
 import PanelTabs from "@/components/PanelTabs";
 import ManuelCiroBolumu from "@/components/ManuelCiroBolumu";
 import AksiyonListesi from "@/components/AksiyonListesi";
+import CeoOzetBolumu from "@/components/CeoOzetBolumu";
 import {
   subscribeDistributors,
   type Distributor,
@@ -271,6 +272,8 @@ function GenelBakisContent() {
       ) : (
         <>
           <AksiyonListesi oneriler={aksiyonOnerileri} />
+
+          <CeoOzetBolumu />
 
           {/* Yıllık ciro hedefi */}
           <div className="mb-6 rounded-xl border border-gray-200 bg-white p-4">
