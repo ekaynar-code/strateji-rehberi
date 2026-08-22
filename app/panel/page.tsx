@@ -443,7 +443,7 @@ function GenelBakisContent() {
             </div>
             {yaklasanFuarlar.length === 0 ? (
               <div className="rounded-xl border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500">
-                Önümüzdeki 30 gün içinde planlanan fuar yok.
+                Önümüzdeki 60 gün içinde planlanan fuar yok.
               </div>
             ) : (
               <div className="flex flex-col gap-2">
