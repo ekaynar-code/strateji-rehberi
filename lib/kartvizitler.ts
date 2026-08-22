@@ -74,9 +74,23 @@ export async function kartvizitSil(id: string) {
  * Bir kartvizit kaydını standart vCard 3.0 formatına çevirir. Bu metin QR koda
  * gömülür — okuyan telefon kamerası bunu otomatik olarak "kişi ekle" önerisine
  * çevirir (iOS ve Android'de yerleşik destek).
+ *
+ * Not: vCard 3.0'da N (yapılandırılmış isim: Soyad;Ad;...) alanı FN (görünen
+ * tam isim) ile birlikte zorunludur. Sadece FN eklemek Apple'da genelde sorun
+ * çıkarmaz ama Android/Google Contacts'ta ismin hiç görünmemesine yol açabilir
+ * — bu yüzden ikisini de dolduruyoruz.
  */
 export function vCardOlustur(kart: Kartvizit): string {
-  const satirlar = ["BEGIN:VCARD", "VERSION:3.0", `FN:${kart.adSoyad}`];
+  const parcalar = kart.adSoyad.trim().split(/\s+/);
+  const soyad = parcalar.length > 1 ? parcalar[parcalar.length - 1] : "";
+  const ad = parcalar.length > 1 ? parcalar.slice(0, -1).join(" ") : parcalar[0] || "";
+
+  const satirlar = [
+    "BEGIN:VCARD",
+    "VERSION:3.0",
+    `N:${soyad};${ad};;;`,
+    `FN:${kart.adSoyad}`,
+  ];
 
   if (kart.sirket) satirlar.push(`ORG:${kart.sirket}`);
   if (kart.unvan) satirlar.push(`TITLE:${kart.unvan}`);
