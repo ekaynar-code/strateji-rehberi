@@ -6,9 +6,12 @@ import {
   ceoDashboardGetir,
   ceoCalendarGetir,
   ceoAttendanceGetir,
+  ceoPayrollGetir,
+  payrollDonemBazindaGrupla,
   type CeoDashboard,
   type CeoCalendar,
   type CeoAttendanceSummary,
+  type CeoPayrollDonemToplam,
 } from "@/lib/ceoApi";
 
 function bugununTarihi(): string {
@@ -34,6 +37,10 @@ function tarihFormatla(tarih: string): string {
   return d.toLocaleDateString("tr-TR", { day: "numeric", month: "short" });
 }
 
+function paraFormatla(deger: number): string {
+  return `₺${Math.round(deger).toLocaleString("tr-TR")}`;
+}
+
 export default function CeoOzetBolumu() {
   const [bagli, setBagli] = useState(false);
   const [acik, setAcik] = useState(false);
@@ -42,6 +49,7 @@ export default function CeoOzetBolumu() {
   const [dashboard, setDashboard] = useState<CeoDashboard | null>(null);
   const [takvim, setTakvim] = useState<CeoCalendar | null>(null);
   const [mesaiOzeti, setMesaiOzeti] = useState<CeoAttendanceSummary | null>(null);
+  const [sonBordro, setSonBordro] = useState<CeoPayrollDonemToplam | null>(null);
   const [detayYukleniyor, setDetayYukleniyor] = useState(false);
 
   useEffect(() => {
@@ -67,6 +75,11 @@ export default function CeoOzetBolumu() {
         setTakvim(t);
         const a = await ceoAttendanceGetir(haftaBasi(), bugununTarihi()).catch(() => null);
         if (a) setMesaiOzeti(a);
+        const p = await ceoPayrollGetir(3).catch(() => null);
+        if (p) {
+          const gruplar = payrollDonemBazindaGrupla(p.payrolls);
+          if (gruplar.length > 0) setSonBordro(gruplar[0]);
+        }
       } catch {
         setHata(true);
       } finally {
@@ -175,6 +188,19 @@ export default function CeoOzetBolumu() {
                     </span>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {sonBordro && (
+            <div className="mt-3 border-t border-gray-100 pt-3">
+              <div className="mb-1 text-xs font-medium text-gray-500">
+                Son bordro ({sonBordro.period})
+              </div>
+              <div className="text-sm">
+                <span className="text-gray-700">Toplam işveren maliyeti: </span>
+                <span className="font-medium text-gray-900">{paraFormatla(sonBordro.totalEmployerCost)}</span>
+                <span className="ml-2 text-xs text-gray-400">({sonBordro.employeeCount} kişi)</span>
               </div>
             </div>
           )}

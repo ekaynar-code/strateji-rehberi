@@ -39,6 +39,57 @@ export interface CeoAttendanceSummary {
   days: CeoAttendanceDay[];
 }
 
+export interface CeoPayrollItem {
+  id: string;
+  period: string;
+  workUnitType: string;
+  status: "approved" | "sent";
+  employeeCount: number;
+  totalNet: number;
+  totalEmployerCost: number;
+  approvedAt: string | null;
+}
+
+export interface CeoPayrollResponse {
+  payrolls: CeoPayrollItem[];
+}
+
+export interface CeoPayrollDonemToplam {
+  period: string;
+  totalNet: number;
+  totalEmployerCost: number;
+  employeeCount: number;
+  units: string[];
+}
+
+/**
+ * Birden fazla birim varsa aynı döneme ait birden fazla kayıt gelebiliyor —
+ * bunları dönem bazında toplayıp tek bir özet satırına indirger.
+ */
+export function payrollDonemBazindaGrupla(payrolls: CeoPayrollItem[]): CeoPayrollDonemToplam[] {
+  const gruplar = new Map<string, CeoPayrollDonemToplam>();
+
+  payrolls.forEach((p) => {
+    const mevcut = gruplar.get(p.period);
+    if (mevcut) {
+      mevcut.totalNet += p.totalNet;
+      mevcut.totalEmployerCost += p.totalEmployerCost;
+      mevcut.employeeCount += p.employeeCount;
+      mevcut.units.push(p.workUnitType);
+    } else {
+      gruplar.set(p.period, {
+        period: p.period,
+        totalNet: p.totalNet,
+        totalEmployerCost: p.totalEmployerCost,
+        employeeCount: p.employeeCount,
+        units: [p.workUnitType],
+      });
+    }
+  });
+
+  return Array.from(gruplar.values()).sort((a, b) => b.period.localeCompare(a.period));
+}
+
 /**
  * CEO API'sine bağlantı var mı (anahtar tanımlı mı) diye kontrol eder.
  * Anahtar yoksa bu modülün fonksiyonları çağrılmamalı — arayüz tarafında
@@ -74,4 +125,8 @@ export async function ceoAttendanceGetir(
     startDate: baslangic,
     endDate: bitis,
   });
+}
+
+export async function ceoPayrollGetir(limit = 12): Promise<CeoPayrollResponse> {
+  return ceoFetch<CeoPayrollResponse>("apiPayroll", { limit: String(limit) });
 }
