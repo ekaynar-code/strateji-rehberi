@@ -29,7 +29,7 @@ export default function FuarCard({ item }: { item: Fuar }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const gun = kalanGun(item.tarih);
-  const yaklasiyor = gun >= 0 && gun <= 30 && item.durum !== "tamamlandi" && item.durum !== "katilinmayacak";
+  const yaklasiyor = gun >= 0 && gun <= 60 && item.durum !== "tamamlandi" && item.durum !== "katilinmayacak";
   const gecmis = gun < 0;
 
   async function handleDurumChange(yeniDurum: FuarDurum) {
