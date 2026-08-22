@@ -120,7 +120,7 @@ export async function deleteDistributor(id: string) {
 import { csvAyristir } from "./csv";
 
 const CSV_BASLIKLARI = ["firmaAdi", "ulke", "bolge", "profil", "iletisimBilgisi", "notlar"] as const;
-const GECERLI_BOLGELER: Bolge[] = ["korfez", "balkanlar", "afrika"];
+const GECERLI_BOLGELER: Bolge[] = ["korfez", "balkanlar", "afrika", "turkiye"];
 const GECERLI_PROFILLER: Profil[] = ["distributor", "fitout", "uretici", "diger"];
 
 export interface CsvSatirSonucu {
