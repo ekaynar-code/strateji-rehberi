@@ -337,10 +337,19 @@ function GenelBakisContent() {
                     {hedefDetayAcik ? `%${hedefYuzde}` : "****"}
                   </span>
                 </button>
+
                 {hedefDetayAcik && (
-                  <p className="mt-1 text-xs text-gray-400">
-                    Satış fırsatlarındaki anlaşmalar ve manuel kayıtlar güncel kurdan TRY&apos;ye çevrilerek toplanır.
-                  </p>
+                  <div className="mt-3 border-t border-gray-100 pt-3">
+                    <p className="mb-3 text-xs text-gray-400">
+                      Satış fırsatlarındaki anlaşmalar ve manuel kayıtlar güncel kurdan TRY&apos;ye çevrilerek toplanır.
+                    </p>
+                    <ManuelCiroBolumu
+                      kayitlar={manuelKayitlar}
+                      acik={manuelFormAcik}
+                      onAcikDegistir={setManuelFormAcik}
+                      kur={kur}
+                    />
+                  </div>
                 )}
               </>
             ) : (
@@ -349,13 +358,6 @@ function GenelBakisContent() {
               </p>
             )}
           </div>
-
-          <ManuelCiroBolumu
-            kayitlar={manuelKayitlar}
-            acik={manuelFormAcik}
-            onAcikDegistir={setManuelFormAcik}
-            kur={kur}
-          />
 
           {/* KPI kartları */}
           <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
