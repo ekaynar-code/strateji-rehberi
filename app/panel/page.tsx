@@ -342,6 +342,7 @@ function GenelBakisContent() {
             kayitlar={manuelKayitlar}
             acik={manuelFormAcik}
             onAcikDegistir={setManuelFormAcik}
+            kur={kur}
           />
 
           {/* KPI kartları */}

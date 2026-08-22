@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { manuelCiroEkle, manuelCiroSil, type ManuelCiroKaydi } from "@/lib/manuelCiro";
+import { tryyeCevir, type KurVeri } from "@/lib/kurlar";
 import type { ParaBirimi } from "@/lib/distributors";
 
 const PARA_BIRIMLERI: ParaBirimi[] = ["TRY", "USD", "EUR"];
@@ -20,10 +21,12 @@ export default function ManuelCiroBolumu({
   kayitlar,
   acik,
   onAcikDegistir,
+  kur,
 }: {
   kayitlar: ManuelCiroKaydi[];
   acik: boolean;
   onAcikDegistir: (deger: boolean) => void;
+  kur: KurVeri;
 }) {
   const [tutar, setTutar] = useState("");
   const [paraBirimi, setParaBirimi] = useState<ParaBirimi>("TRY");
@@ -31,6 +34,16 @@ export default function ManuelCiroBolumu({
   const [tarih, setTarih] = useState(() => new Date().toISOString().slice(0, 10));
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [detayAcik, setDetayAcik] = useState(false);
+
+  const toplamTry = useMemo(
+    () =>
+      kayitlar.reduce((toplam, k) => {
+        const deger = tryyeCevir(k.tutar, k.paraBirimi, kur);
+        return toplam + (deger ?? 0);
+      }, 0),
+    [kayitlar, kur]
+  );
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -124,10 +137,31 @@ export default function ManuelCiroBolumu({
       )}
 
       {kayitlar.length > 0 && (
-        <div className="flex flex-col gap-1.5">
-          {kayitlar.map((k) => (
-            <ManuelCiroSatiri key={k.id} kayit={k} />
-          ))}
+        <div>
+          <button
+            onClick={() => setDetayAcik((d) => !d)}
+            className="flex w-full items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-left transition hover:bg-gray-50"
+          >
+            <span className="flex items-center gap-1.5 text-sm text-gray-700">
+              <svg
+                viewBox="0 0 16 16"
+                fill="none"
+                className={`h-3.5 w-3.5 shrink-0 text-gray-400 transition-transform ${detayAcik ? "rotate-90" : ""}`}
+              >
+                <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              {kayitlar.length} manuel kayıt
+            </span>
+            <span className="font-medium text-gray-900">₺{Math.round(toplamTry).toLocaleString("tr-TR")}</span>
+          </button>
+
+          {detayAcik && (
+            <div className="mt-1.5 flex flex-col gap-1.5">
+              {kayitlar.map((k) => (
+                <ManuelCiroSatiri key={k.id} kayit={k} />
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
