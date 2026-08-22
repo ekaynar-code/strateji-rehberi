@@ -12,8 +12,12 @@ export interface CeoDashboard {
 }
 
 export interface CeoCalendarUnit {
-  unit: string;
+  unitId: string;
+  unitName: string;
+  type: string;
   willWork: boolean;
+  startTime: string | null;
+  endTime: string | null;
 }
 
 export interface CeoCalendar {
@@ -21,10 +25,18 @@ export interface CeoCalendar {
   units: CeoCalendarUnit[];
 }
 
+export interface CeoAttendanceDay {
+  date: string;
+  present: number;
+  absent: number;
+  totalWorkedMinutes: number;
+  byUnit: Record<string, { present: number; totalWorkedMinutes: number }>;
+}
+
 export interface CeoAttendanceSummary {
   startDate: string;
   endDate: string;
-  [key: string]: unknown;
+  days: CeoAttendanceDay[];
 }
 
 /**
