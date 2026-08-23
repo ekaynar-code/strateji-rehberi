@@ -8,6 +8,7 @@ import {
   ceoAttendanceGetir,
   ceoPayrollGetir,
   payrollDonemBazindaGrupla,
+  birimleriBirlestir,
   type CeoDashboard,
   type CeoCalendar,
   type CeoAttendanceSummary,
@@ -131,42 +132,36 @@ export default function CeoOzetBolumu() {
         <div className="mt-1.5 rounded-xl border border-gray-200 bg-white p-4">
           {detayYukleniyor && <p className="text-sm text-gray-400">Yükleniyor…</p>}
 
-          {dashboard.byUnit && Object.keys(dashboard.byUnit).length > 0 && (
-            <div className="mb-3">
-              <div className="mb-1.5 text-xs font-medium text-gray-500">Birim bazında</div>
-              <div className="flex flex-wrap gap-3">
-                {Object.entries(dashboard.byUnit).map(([birim, veri]) => (
-                  <div key={birim} className="text-sm">
-                    <span className="text-gray-700">{birim}: </span>
-                    <span className="font-medium text-gray-900">
-                      {veri.working}/{veri.total}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
           {takvim && (
-            <div>
+            <div className="mb-3">
               <div className="mb-1.5 text-xs font-medium text-gray-500">
-                Bugün ({takvim.date}) mesai durumu
+                Birimler — bugün ({takvim.date})
               </div>
-              <div className="flex flex-wrap gap-2">
-                {takvim.units.map((u) => (
-                  <span
-                    key={u.unitId}
-                    className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                      u.willWork ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-500"
-                    }`}
+              <div className="flex flex-col gap-1.5">
+                {birimleriBirlestir(dashboard, takvim).map((b) => (
+                  <div
+                    key={b.unitId}
+                    className="flex items-center justify-between rounded-lg bg-gray-50 px-2.5 py-1.5 text-sm"
                   >
-                    {u.unitName}
-                    {u.willWork && u.startTime && u.endTime
-                      ? ` · ${u.startTime}–${u.endTime}`
-                      : u.willWork
-                        ? " · mesaide"
-                        : " · mesai yok"}
-                  </span>
+                    <span className="text-gray-700">{b.unitName}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-gray-900">
+                        {b.working}/{b.total}
+                      </span>
+                      {b.absent > 0 && <span className="text-xs text-red-500">{b.absent} devamsız</span>}
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                          b.willWorkToday ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-400"
+                        }`}
+                      >
+                        {b.willWorkToday && b.startTime && b.endTime
+                          ? `${b.startTime}–${b.endTime}`
+                          : b.willWorkToday
+                            ? "mesaide"
+                            : "mesai yok"}
+                      </span>
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>

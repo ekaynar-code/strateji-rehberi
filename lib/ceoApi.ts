@@ -4,11 +4,26 @@ function getApiKey(): string | undefined {
   return process.env.NEXT_PUBLIC_CEO_API_KEY;
 }
 
-export interface CeoDashboard {
+export interface CeoDashboardUnit {
+  unitId: string;
+  unitName: string;
+  type: string;
   total: number;
   working: number;
+  checkedOut: number;
   onLeave: number;
-  byUnit?: Record<string, { total: number; working: number }>;
+  absent: number;
+}
+
+export interface CeoDashboard {
+  date: string;
+  total: number;
+  working: number;
+  checkedOut: number;
+  onLeave: number;
+  absent: number;
+  byUnit: Record<string, CeoDashboardUnit>;
+  units: CeoDashboardUnit[];
 }
 
 export interface CeoCalendarUnit {
@@ -60,6 +75,47 @@ export interface CeoPayrollDonemToplam {
   totalEmployerCost: number;
   employeeCount: number;
   units: string[];
+}
+
+export interface CeoBirimOzeti {
+  unitId: string;
+  unitName: string;
+  type: string;
+  total: number;
+  working: number;
+  onLeave: number;
+  absent: number;
+  willWorkToday: boolean;
+  startTime: string | null;
+  endTime: string | null;
+}
+
+/**
+ * apiDashboard (çalışan sayıları) ve apiCalendar (bugünkü mesai planı) verilerini
+ * unitId üzerinden birleştirir. İkisi de aynı unitId'yi kullandığı için artık
+ * güvenilir şekilde eşleştirilebiliyor.
+ */
+export function birimleriBirlestir(
+  dashboard: CeoDashboard,
+  takvim: CeoCalendar
+): CeoBirimOzeti[] {
+  const takvimMap = new Map(takvim.units.map((u) => [u.unitId, u]));
+
+  return dashboard.units.map((d) => {
+    const t = takvimMap.get(d.unitId);
+    return {
+      unitId: d.unitId,
+      unitName: d.unitName,
+      type: d.type,
+      total: d.total,
+      working: d.working,
+      onLeave: d.onLeave,
+      absent: d.absent,
+      willWorkToday: t?.willWork ?? false,
+      startTime: t?.startTime ?? null,
+      endTime: t?.endTime ?? null,
+    };
+  });
 }
 
 /**
