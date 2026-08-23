@@ -49,6 +49,7 @@ function PiyasaNabziContent() {
     return () => unsubscribe();
   }, []);
 
+  // İlk kullanımda hiç ülke yoksa varsayılan seti otomatik ekle.
   useEffect(() => {
     if (ulkelerYukleniyor || ulkeler.length > 0 || ilkKurulumYapiliyor) return;
     setIlkKurulumYapiliyor(true);
@@ -117,6 +118,7 @@ function PiyasaNabziContent() {
         </button>
       </div>
 
+      {/* Kategori seçimi */}
       <div className="mb-4 flex gap-1 rounded-lg border border-gray-200 bg-gray-50 p-1">
         <button
           onClick={() => setKategori("ihaleler")}
@@ -136,6 +138,7 @@ function PiyasaNabziContent() {
         </button>
       </div>
 
+      {/* Sektörle ilgili filtresi */}
       {sektorSayisi > 0 && (
         <div className="mb-4 flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
           <span className="text-xs text-gray-500">
@@ -152,6 +155,7 @@ function PiyasaNabziContent() {
         </div>
       )}
 
+      {/* Ülke listesi yönetimi */}
       <div className="mb-5">
         <div className="mb-2 flex items-center justify-between">
           <span className="text-xs font-medium text-gray-500">Takip edilen ülkeler</span>
@@ -216,8 +220,8 @@ function PiyasaNabziContent() {
 
       <div className="flex flex-col gap-2">
         {gosterilecekYazilar.map((y, i) => (
-          
-            <a              key={i}
+          <a
+            key={i}
             href={y.link}
             target="_blank"
             rel="noopener noreferrer"
@@ -243,7 +247,7 @@ function PiyasaNabziContent() {
 
       <p className="mt-6 text-xs text-gray-400">
         Kaynak:{" "}
-        
+        <a
           href="https://dtybs.ticaret.gov.tr/blog/"
           target="_blank"
           rel="noopener noreferrer"

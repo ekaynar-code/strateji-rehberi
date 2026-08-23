@@ -13,6 +13,7 @@ import {
   type ParaBirimi,
   type FiyatPozisyonu,
 } from "@/lib/distributors";
+import MesajOlusturModal from "@/components/MesajOlusturModal";
 
 const DURUM_RENK: Record<Durum, string> = {
   arastirmada: "bg-gray-100 text-gray-600",
@@ -42,6 +43,7 @@ export default function DistributorCard({ item }: { item: Distributor }) {
   const [fiyatPozisyonuGirisi, setFiyatPozisyonuGirisi] = useState<FiyatPozisyonu | "">(item.fiyatPozisyonu || "");
   const [gucluYonlerGirisi, setGucluYonlerGirisi] = useState(item.gucluYonler || "");
   const [zayifYonlerGirisi, setZayifYonlerGirisi] = useState(item.zayifYonler || "");
+  const [mesajModalAcik, setMesajModalAcik] = useState(false);
 
   async function handleDurumChange(yeniDurum: Durum) {
     setBusy(true);
@@ -290,7 +292,18 @@ export default function DistributorCard({ item }: { item: Distributor }) {
         </div>
       )}
 
-      <div className="mt-3 flex justify-end">
+      <div className="mt-3 flex items-center justify-between">
+        {item.profil !== "uretici" && (
+          <button
+            onClick={() => setMesajModalAcik(true)}
+            className="flex items-center gap-1 rounded-lg border border-gray-300 px-2.5 py-1 text-xs text-gray-600 transition hover:bg-gray-50"
+          >
+            <svg viewBox="0 0 16 16" fill="none" className="h-3.5 w-3.5">
+              <path d="M2 4l6 4 6-4M2 4v8h12V4M2 4h12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Mesaj oluştur
+          </button>
+        )}
         {confirmDelete ? (
           <div className="flex items-center gap-2 text-sm">
             <span className="text-gray-500">Silinsin mi?</span>
@@ -311,12 +324,16 @@ export default function DistributorCard({ item }: { item: Distributor }) {
         ) : (
           <button
             onClick={() => setConfirmDelete(true)}
-            className="text-xs text-gray-400 hover:text-red-600"
+            className="ml-auto text-xs text-gray-400 hover:text-red-600"
           >
             Kaydı sil
           </button>
         )}
       </div>
+
+      {mesajModalAcik && (
+        <MesajOlusturModal kayit={item} onKapat={() => setMesajModalAcik(false)} />
+      )}
     </div>
   );
 }
