@@ -40,11 +40,10 @@ function decodeHtmlEntities(text) {
  * T.C. Ticaret Bakanlığı Ticaret Müşavirlikleri blog sayfasını (dtybs.ticaret.gov.tr)
  * HTML olarak ayrıştırır. Tam HTML yapısını (class isimleri vb.) bilmediğimiz için
  * toleranslı bir yaklaşım kullanıyoruz: her "/blog/post/<id>/" linkini bulup,
- * o linkin hemen ardından gelen metni başlık, o linkten sonraki 400 karakter
- * içinde geçen "XX Ay YYYY SS:DD" formatındaki ilk tarihi ve "... Ticaret
- * Müşavirliği" formatındaki ilk ifadeyi müşavirlik adı olarak alıyoruz.
+ * o linkin hemen ardından gelen metni başlık, o linkten sonraki pencere içinde
+ * geçen tarihi ve "... Ticaret Müşavirliği" ifadesini müşavirlik adı olarak alıyoruz.
  */
-function parseBlogPosts(html) {
+function parseBlogPosts(html, kategoriEtiketi) {
   const posts = [];
   const linkRegex = /href="(\/blog\/post\/(\d+)\/)"[^>]*>([^<]*)</g;
 
@@ -55,12 +54,10 @@ function parseBlogPosts(html) {
     if (gorulenIdler.has(id)) continue;
 
     const title = decodeHtmlEntities(rawText.trim());
-    // Çok kısa veya boş metinler (görsel alt metni, buton yazısı vb.) başlık değildir.
     if (title.length < 8) continue;
 
     gorulenIdler.add(id);
 
-    // Bu linkten sonraki 600 karakterlik pencerede tarih ve müşavirlik adını ara.
     const pencere = html.slice(match.index, match.index + 800);
     const tarihMatch = pencere.match(/(\d{2}\s+[A-Za-zİıÖöÜüÇçŞşĞğ]{3}\s+\d{4}\s+\d{2}:\d{2})/);
     const musavirlikMatch = pencere.match(/([A-ZİÖÜÇŞĞ][a-zA-Zİıöüçşğ]+\s+Ticaret\s+Müşavirliği)/);
@@ -70,25 +67,44 @@ function parseBlogPosts(html) {
       link: `https://dtybs.ticaret.gov.tr${path}`,
       musavirlik: musavirlikMatch ? musavirlikMatch[1] : "",
       tarih: tarihMatch ? tarihMatch[1] : "",
+      kategori: kategoriEtiketi,
     });
   }
 
   return posts;
 }
 
-const KATEGORILER = { ihaleler: 41, guncel: 1 };
+// Sitedeki tüm ilgili kategoriler — hepsini birlikte çekip birleştiriyoruz.
+const KATEGORILER = [
+  { id: 41, etiket: "İhale" },
+  { id: 1, etiket: "Gelişme" },
+  { id: 21, etiket: "Mevzuat" },
+  { id: 42, etiket: "Fırsat" },
+  { id: 22, etiket: "Öneri" },
+];
+
+// "21 Ağu 2026 14:14" formatındaki tarihi sıralanabilir bir değere çevirir.
+const AY_KISALTMALARI = {
+  Oca: 0, Şub: 1, Mar: 2, Nis: 3, May: 4, Haz: 5,
+  Tem: 6, Ağu: 7, Eyl: 8, Eki: 9, Kas: 10, Ara: 11,
+};
+function tarihiSayiyaDon(tarihStr) {
+  const m = tarihStr.match(/(\d{2})\s+([A-Za-zİıÖöÜüÇçŞşĞğ]{3})\s+(\d{4})\s+(\d{2}):(\d{2})/);
+  if (!m) return 0;
+  const [, gun, ay, yil, saat, dakika] = m;
+  const ayIndex = AY_KISALTMALARI[ay] ?? 0;
+  return new Date(Number(yil), ayIndex, Number(gun), Number(saat), Number(dakika)).getTime();
+}
 
 /**
- * HTTP endpoint: ?ulkeler=Bulgaristan,Romanya&kategori=ihaleler (veya guncel)
- * ile çağrılır. Ticaret Bakanlığı Ticaret Müşavirlikleri blog'undan ilgili
- * kategorideki son yazıları çekip, başlıkta/müşavirlik adında geçen ülke adına
- * göre filtreler.
+ * HTTP endpoint: ?ulkeler=Bulgaristan,Romanya ile çağrılır. Ticaret Bakanlığı
+ * Ticaret Müşavirlikleri blog'undaki TÜM kategorilerden (ihale, gelişme,
+ * mevzuat, fırsat, öneri) yazıları çekip, başlıkta/müşavirlik adında geçen
+ * ülke adına göre filtreler, en güncelden en eskiye sıralar.
  */
 exports.musavirlikBultenGetir = onRequest(
-  { cors: true, region: "europe-west1", timeoutSeconds: 25 },
+  { cors: true, region: "europe-west1", timeoutSeconds: 30 },
   async (req, res) => {
-    const kategoriParam = String(req.query.kategori || "ihaleler");
-    const kategoriId = KATEGORILER[kategoriParam] || KATEGORILER.ihaleler;
     const ulkelerParam = String(req.query.ulkeler || "");
     const ulkeler = ulkelerParam
       .split(",")
@@ -96,9 +112,15 @@ exports.musavirlikBultenGetir = onRequest(
       .filter(Boolean);
 
     try {
-      const url = `https://dtybs.ticaret.gov.tr/blog/?kategori=${kategoriId}`;
-      const html = await fetchHtml(url);
-      let posts = parseBlogPosts(html);
+      const tumSayfalar = await Promise.all(
+        KATEGORILER.map(async (k) => {
+          const url = `https://dtybs.ticaret.gov.tr/blog/?kategori=${k.id}`;
+          const html = await fetchHtml(url);
+          return parseBlogPosts(html, k.etiket);
+        })
+      );
+
+      let posts = tumSayfalar.flat();
       const debugTotalParsed = posts.length;
 
       if (ulkeler.length > 0) {
@@ -111,7 +133,9 @@ exports.musavirlikBultenGetir = onRequest(
         );
       }
 
-      res.status(200).json({ items: posts.slice(0, 15), debugTotalParsed });
+      posts.sort((a, b) => tarihiSayiyaDon(b.tarih) - tarihiSayiyaDon(a.tarih));
+
+      res.status(200).json({ items: posts.slice(0, 25), debugTotalParsed });
     } catch (err) {
       res.status(500).json({ error: "Bülten alınamadı", detail: String(err) });
     }
