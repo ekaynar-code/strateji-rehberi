@@ -58,12 +58,12 @@ exports.haberleriGetir = onRequest(
     try {
       const url = `https://api.currentsapi.services/v1/search?keywords=${encodeURIComponent(
         sorgu
-      )}&language=tr&page_size=8`;
+      )}&page_size=8`;
 
       const { statusCode, body } = await fetchJson(url, { Authorization: `Bearer ${apiKey}` });
 
       if (statusCode !== 200 || body.status !== "ok" || !Array.isArray(body.news)) {
-        res.status(200).json({ items: [], debugRaw: body });
+        res.status(200).json({ items: [], debugRaw: body, debugStatusCode: statusCode });
         return;
       }
 
@@ -80,6 +80,12 @@ exports.haberleriGetir = onRequest(
         })(),
         onemliMi: haberOnemliMi(n.title),
       }));
+
+      if (items.length === 0) {
+        // Teşhis için: sorgu başarılı ama sonuç boşsa ham yanıtı da dönelim.
+        res.status(200).json({ items, debugRaw: body, debugStatusCode: statusCode });
+        return;
+      }
 
       res.status(200).json({ items });
     } catch (err) {
