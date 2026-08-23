@@ -165,7 +165,11 @@ function GenelBakisContent() {
             ulkeler.map((u) => u.ulkeAdi)
           ).catch(() => [] as MusavirlikYazisi[]);
           if (iptal) return;
-          setOnemliHaberler(sonuc.slice(0, 3));
+          // Sektörle ilgili olanları öne al, sonra kalanları ekle.
+          const siraliSonuc = [...sonuc].sort(
+            (a, b) => Number(b.sektorleIlgili) - Number(a.sektorleIlgili)
+          );
+          setOnemliHaberler(siraliSonuc.slice(0, 3));
         } finally {
           if (!iptal) setHaberYukleniyor(false);
         }
@@ -398,13 +402,13 @@ function GenelBakisContent() {
             className="mb-6 block w-full rounded-xl border border-gray-200 bg-white p-4 text-left transition hover:border-brand-300 hover:bg-brand-50/30"
           >
             <div className="mb-3 flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700">Piyasa Nabzı — güncel ihaleler</span>
+              <span className="text-sm font-medium text-gray-700">Piyasa Nabzı — son gelişmeler</span>
               <span className="text-xs text-gray-400">Tümünü gör →</span>
             </div>
             {haberYukleniyor ? (
               <p className="text-sm text-gray-400">Yükleniyor…</p>
             ) : onemliHaberler.length === 0 ? (
-              <p className="text-sm text-gray-400">Takip edilen ülkelerde güncel ihale yok.</p>
+              <p className="text-sm text-gray-400">Takip edilen ülkelerde güncel yazı yok.</p>
             ) : (
               <div className="flex flex-col gap-1.5">
                 {onemliHaberler.map((h, i) => (

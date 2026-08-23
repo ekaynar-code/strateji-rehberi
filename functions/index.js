@@ -38,73 +38,119 @@ function decodeHtmlEntities(text) {
 
 /**
  * T.C. Ticaret Bakanlığı Ticaret Müşavirlikleri blog sayfasını (dtybs.ticaret.gov.tr)
- * HTML olarak ayrıştırır. Tam HTML yapısını (class isimleri vb.) bilmediğimiz için
- * toleranslı bir yaklaşım kullanıyoruz: her "/blog/post/<id>/" linkini bulup,
- * o linkin hemen ardından gelen metni başlık, o linkten sonraki pencere içinde
- * geçen tarihi ve "... Ticaret Müşavirliği" ifadesini müşavirlik adı olarak alıyoruz.
+ * HTML olarak ayrıştırır.
  */
-function parseBlogPosts(html, kategoriEtiketi) {
+function parseBlogPosts(html) {
   const posts = [];
-  const linkRegex = /href="(\/blog\/post\/(\d+)\/)"[^>]*>([^<]*)</g;
+  // Gerçek yapı: <a href="/blog/post/ID/"><h3 class="h4">Başlık...</h3></a>
+  // Link ile başlık arasında img'li bir <a> bloğu daha var (görsel), o yüzden
+  // doğrudan "href sonrası <h3" kalıbını arıyoruz.
+  const postRegex = /href="(\/blog\/post\/(\d+)\/)">\s*<h3[^>]*>([\s\S]*?)<\/h3>/g;
 
   const gorulenIdler = new Set();
   let match;
-  while ((match = linkRegex.exec(html)) !== null) {
-    const [, path, id, rawText] = match;
+  while ((match = postRegex.exec(html)) !== null) {
+    const [, path, id, rawTitle] = match;
     if (gorulenIdler.has(id)) continue;
-
-    const title = decodeHtmlEntities(rawText.trim());
-    if (title.length < 8) continue;
-
     gorulenIdler.add(id);
 
-    const pencere = html.slice(match.index, match.index + 800);
-    const tarihMatch = pencere.match(/(\d{2}\s+[A-Za-zİıÖöÜüÇçŞşĞğ]{3}\s+\d{4}\s+\d{2}:\d{2})/);
-    const musavirlikMatch = pencere.match(/([A-ZİÖÜÇŞĞ][a-zA-Zİıöüçşğ]+\s+Ticaret\s+Müşavirliği)/);
+    const title = decodeHtmlEntities(rawTitle.replace(/<[^>]+>/g, "").trim());
+    if (!title) continue;
+
+    // Başlıktan önceki pencerede (görsel bloğu dahil) müşavirlik adı
+    // genelde img alt metninde geçiyor.
+    const oncekiPencere = html.slice(Math.max(0, match.index - 400), match.index);
+    const musavirlikMatch = oncekiPencere.match(/alt="([^"]*Ticaret\s+Müşavirliği)"/);
+
+    // Tarih, başlıktan sonra bir saat ikonunun yanında geçiyor — geniş bir
+    // pencerede arayıp ilk "GG Ay YYYY SS:DD" kalıbını alıyoruz.
+    const sonrakiPencere = html.slice(match.index, match.index + 1200);
+    const tarihMatch = sonrakiPencere.match(/(\d{1,2}\s+[A-Za-zİıÖöÜüÇçŞşĞğ]{3}\s+\d{4}\s+\d{2}:\d{2})/);
 
     posts.push({
       title,
       link: `https://dtybs.ticaret.gov.tr${path}`,
       musavirlik: musavirlikMatch ? musavirlikMatch[1] : "",
       tarih: tarihMatch ? tarihMatch[1] : "",
-      kategori: kategoriEtiketi,
+      sektorleIlgili: sektorleIlgiliMi(title),
     });
   }
 
   return posts;
 }
 
-// Sitedeki tüm ilgili kategoriler — hepsini birlikte çekip birleştiriyoruz.
-const KATEGORILER = [
-  { id: 41, etiket: "İhale" },
-  { id: 1, etiket: "Gelişme" },
-  { id: 21, etiket: "Mevzuat" },
-  { id: 42, etiket: "Fırsat" },
-  { id: 22, etiket: "Öneri" },
-];
-
-// "21 Ağu 2026 14:14" formatındaki tarihi sıralanabilir bir değere çevirir.
-const AY_KISALTMALARI = {
-  Oca: 0, Şub: 1, Mar: 2, Nis: 3, May: 4, Haz: 5,
-  Tem: 6, Ağu: 7, Eyl: 8, Eki: 9, Kas: 10, Ara: 11,
+// Ticaret Müşavirlikleri, bulundukları ülkenin başkenti/büyük şehri adıyla
+// anılıyor (örn. "Sofya Ticaret Müşavirliği" = Bulgaristan). Kullanıcı ülke
+// adı girdiğinde bu haritayı kullanarak şehir bazlı müşavirlik adlarını
+// doğru ülkeyle eşleştiriyoruz.
+const SEHIR_ULKE_ESLEME = {
+  Sofya: "Bulgaristan",
+  Bükreş: "Romanya",
+  Belgrad: "Sırbistan",
+  Kahire: "Mısır",
+  Rabat: "Fas",
+  Kazablanka: "Fas",
+  Lagos: "Nijerya",
+  Abuja: "Nijerya",
+  Riyad: "Suudi Arabistan",
+  Cidde: "Suudi Arabistan",
+  Dubai: "Birleşik Arap Emirlikleri",
+  "Abu Dabi": "Birleşik Arap Emirlikleri",
+  Kigali: "Ruanda",
+  Zagrep: "Hırvatistan",
+  Kito: "Ekvador",
+  Nairobi: "Kenya",
+  Cezayir: "Cezayir",
+  Tunus: "Tunus",
+  Trablus: "Libya",
+  Amman: "Ürdün",
+  Beyrut: "Lübnan",
+  Kuveyt: "Kuveyt",
+  Doha: "Katar",
+  Manama: "Bahreyn",
+  Maskat: "Umman",
 };
-function tarihiSayiyaDon(tarihStr) {
-  const m = tarihStr.match(/(\d{2})\s+([A-Za-zİıÖöÜüÇçŞşĞğ]{3})\s+(\d{4})\s+(\d{2}):(\d{2})/);
-  if (!m) return 0;
-  const [, gun, ay, yil, saat, dakika] = m;
-  const ayIndex = AY_KISALTMALARI[ay] ?? 0;
-  return new Date(Number(yil), ayIndex, Number(gun), Number(saat), Number(dakika)).getTime();
+
+function musavirlikUlkesi(musavirlikAdi) {
+  const sehir = musavirlikAdi.replace(" Ticaret Müşavirliği", "").trim();
+  return SEHIR_ULKE_ESLEME[sehir] || sehir;
 }
 
+// Sektörle (ahşap iç kapı, yangın kapısı, doğrama, otel/okul/işyeri projeleri)
+// ilgili anahtar kelimeler — başlıkta geçtiğinde yazı "sektörle ilgili" sayılır.
+const SEKTOR_ANAHTAR_KELIMELERI = [
+  // Ürün / malzeme
+  "kapı", "kapılar", "doğrama", "ahşap", "yangın", "cam", "cephe",
+  "pencere", "mobilya", "mdf", "kereste", "panel",
+  // Proje tipi
+  "otel", "okul", "hastane", "konut", "villa", "rezidans", "ofis",
+  "alışveriş merkezi", "avm",
+  // İnşaat / sektör genel
+  "inşaat", "yapı", "yüklenici", "müteahhit", "restorasyon", "renovasyon",
+  "tadilat", "dekorasyon", "iç mimari",
+  // Mevzuat / süreç
+  "yönetmelik", "standart", "sertifika", "ihale", "teklif", "fuar",
+  "ithalat", "ihracat", "gümrük",
+];
+
+function sektorleIlgiliMi(title) {
+  const lower = title.toLowerCase();
+  return SEKTOR_ANAHTAR_KELIMELERI.some((k) => lower.includes(k));
+}
+
+const KATEGORILER = { ihaleler: 41, guncel: 1 };
+
 /**
- * HTTP endpoint: ?ulkeler=Bulgaristan,Romanya ile çağrılır. Ticaret Bakanlığı
- * Ticaret Müşavirlikleri blog'undaki TÜM kategorilerden (ihale, gelişme,
- * mevzuat, fırsat, öneri) yazıları çekip, başlıkta/müşavirlik adında geçen
- * ülke adına göre filtreler, en güncelden en eskiye sıralar.
+ * HTTP endpoint: ?ulkeler=Bulgaristan,Romanya&kategori=ihaleler (veya guncel)
+ * ile çağrılır. Ticaret Bakanlığı Ticaret Müşavirlikleri blog'undan ilgili
+ * kategorideki son yazıları çekip, başlıkta/müşavirlik adında geçen ülke adına
+ * göre filtreler.
  */
 exports.musavirlikBultenGetir = onRequest(
-  { cors: true, region: "europe-west1", timeoutSeconds: 30 },
+  { cors: true, region: "europe-west1", timeoutSeconds: 40 },
   async (req, res) => {
+    const kategoriParam = String(req.query.kategori || "ihaleler");
+    const kategoriId = KATEGORILER[kategoriParam] || KATEGORILER.ihaleler;
     const ulkelerParam = String(req.query.ulkeler || "");
     const ulkeler = ulkelerParam
       .split(",")
@@ -112,30 +158,42 @@ exports.musavirlikBultenGetir = onRequest(
       .filter(Boolean);
 
     try {
-      const tumSayfalar = await Promise.all(
-        KATEGORILER.map(async (k) => {
-          const url = `https://dtybs.ticaret.gov.tr/blog/?kategori=${k.id}`;
-          const html = await fetchHtml(url);
-          return parseBlogPosts(html, k.etiket);
-        })
-      );
+      // Sitede sayfalama var (?page=2, 3, ...) — sadece ilk sayfa çok az yazı
+      // döndürdüğü için ilk 6 sayfayı paralel çekip birleştiriyoruz.
+      const SAYFA_SAYISI = 6;
+      const sayfaUrlleri = Array.from({ length: SAYFA_SAYISI }, (_, i) => {
+        const sayfaNo = i + 1;
+        const base = `https://dtybs.ticaret.gov.tr/blog/?kategori=${kategoriId}`;
+        return sayfaNo === 1 ? base : `${base}&page=${sayfaNo}`;
+      });
 
-      let posts = tumSayfalar.flat();
-      const debugTotalParsed = posts.length;
+      const htmlSayfalari = await Promise.all(sayfaUrlleri.map((u) => fetchHtml(u).catch(() => "")));
+      const tumPosts = [];
+      const gorulenLinkler = new Set();
+      for (const html of htmlSayfalari) {
+        if (!html) continue;
+        for (const post of parseBlogPosts(html)) {
+          if (gorulenLinkler.has(post.link)) continue;
+          gorulenLinkler.add(post.link);
+          tumPosts.push(post);
+        }
+      }
+      const debugTotalParsed = tumPosts.length;
 
+      let posts = tumPosts;
       if (ulkeler.length > 0) {
-        posts = posts.filter((p) =>
-          ulkeler.some(
+        posts = posts.filter((p) => {
+          const ulke = musavirlikUlkesi(p.musavirlik);
+          return ulkeler.some(
             (u) =>
-              p.musavirlik.toLowerCase().includes(u.toLowerCase()) ||
+              ulke.toLowerCase().includes(u.toLowerCase()) ||
+              u.toLowerCase().includes(ulke.toLowerCase()) ||
               p.title.toLowerCase().includes(u.toLowerCase())
-          )
-        );
+          );
+        });
       }
 
-      posts.sort((a, b) => tarihiSayiyaDon(b.tarih) - tarihiSayiyaDon(a.tarih));
-
-      res.status(200).json({ items: posts.slice(0, 25), debugTotalParsed });
+      res.status(200).json({ items: posts.slice(0, 20), debugTotalParsed });
     } catch (err) {
       res.status(500).json({ error: "Bülten alınamadı", detail: String(err) });
     }
