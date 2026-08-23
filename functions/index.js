@@ -60,7 +60,7 @@ exports.haberleriGetir = onRequest(
         sorgu
       )}&language=tr&page_size=8`;
 
-      const { statusCode, body } = await fetchJson(url, { Authorization: apiKey });
+      const { statusCode, body } = await fetchJson(url, { Authorization: `Bearer ${apiKey}` });
 
       if (statusCode !== 200 || body.status !== "ok" || !Array.isArray(body.news)) {
         res.status(200).json({ items: [], debugRaw: body });
