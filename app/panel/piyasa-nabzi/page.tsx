@@ -200,9 +200,18 @@ function PiyasaNabziContent() {
       </div>
 
       <p className="mt-6 text-xs text-gray-400">
-        Haberler Google News RSS akışından otomatik çekilir. Vurgulanan haberler; mevzuat,
-        ihale, yatırım, fuar, sertifika gibi anahtar kelimelere göre basitçe öne çıkarılır —
-        bu bir yorum değil, dikkat çekme amaçlı bir işaretlemedir.
+        Haberler{" "}
+        <a
+          href="https://currentsapi.services"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline hover:text-brand-500"
+        >
+          Currents API
+        </a>{" "}
+        üzerinden otomatik çekilir. Vurgulanan haberler; mevzuat, ihale, yatırım,
+        fuar, sertifika gibi anahtar kelimelere göre basitçe öne çıkarılır — bu
+        bir yorum değil, dikkat çekme amaçlı bir işaretlemedir.
       </p>
     </main>
   );

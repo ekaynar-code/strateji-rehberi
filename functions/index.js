@@ -1,5 +1,8 @@
 const { onRequest } = require("firebase-functions/v2/https");
+const { defineSecret } = require("firebase-functions/params");
 const https = require("https");
+
+const CURRENTS_API_KEY = defineSecret("CURRENTS_API_KEY");
 
 // Başlıkta geçtiğinde haberi "önemli/dikkat" olarak işaretleyen kelimeler.
 const ONEM_ANAHTAR_KELIMELERI = [
@@ -13,89 +16,32 @@ function haberOnemliMi(title) {
   return ONEM_ANAHTAR_KELIMELERI.some((k) => lower.includes(k));
 }
 
-function extractSource(title) {
-  const parts = title.split(" - ");
-  return parts.length > 1 ? parts[parts.length - 1] : "";
-}
-
-function cleanTitle(title) {
-  const parts = title.split(" - ");
-  return parts.length > 1 ? parts.slice(0, -1).join(" - ") : title;
-}
-
-function decodeHtmlEntities(text) {
-  return text
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&apos;/g, "'");
-}
-
-/** Basit regex tabanlı RSS <item> ayrıştırıcı — harici kütüphane gerektirmez. */
-function parseRssItems(xml, limit = 8) {
-  const items = [];
-  const itemBlocks = xml.split("<item>").slice(1, limit + 1);
-
-  for (const block of itemBlocks) {
-    const titleMatch = block.match(/<title>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?<\/title>/s);
-    const linkMatch = block.match(/<link>(.*?)<\/link>/s);
-    const pubDateMatch = block.match(/<pubDate>(.*?)<\/pubDate>/s);
-
-    const rawTitle = decodeHtmlEntities((titleMatch?.[1] || "").trim());
-    const link = (linkMatch?.[1] || "").trim();
-    const pubDate = (pubDateMatch?.[1] || "").trim();
-
-    if (!rawTitle) continue;
-
-    items.push({
-      title: cleanTitle(rawTitle),
-      link,
-      pubDate,
-      source: extractSource(rawTitle),
-      onemliMi: haberOnemliMi(rawTitle),
-    });
-  }
-
-  return items;
-}
-
-function fetchUrl(url) {
+function fetchJson(url, headers) {
   return new Promise((resolve, reject) => {
     https
-      .get(
-        url,
-        {
-          headers: {
-            "User-Agent":
-              "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "Accept-Encoding": "identity",
-            "Accept-Language": "tr-TR,tr;q=0.9",
-          },
-        },
-        (res) => {
-          if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-            // Google News bazen yönlendirme yapabilir, takip edelim.
-            fetchUrl(res.headers.location).then(resolve).catch(reject);
-            return;
+      .get(url, { headers }, (res) => {
+        let data = "";
+        res.on("data", (chunk) => (data += chunk));
+        res.on("end", () => {
+          try {
+            resolve({ statusCode: res.statusCode, body: JSON.parse(data) });
+          } catch {
+            reject(new Error("JSON ayrıştırılamadı: " + data.slice(0, 200)));
           }
-          let data = "";
-          res.on("data", (chunk) => (data += chunk));
-          res.on("end", () => resolve(data));
-        }
-      )
+        });
+      })
       .on("error", reject);
   });
 }
 
 /**
- * HTTP endpoint: ?q=arama+terimi ile çağrılır, o terimle Google News RSS'ini
- * sunucu tarafında çekip JSON olarak döner. Tarayıcıdan çağrıldığında CORS
- * sorunu olmaz çünkü istek sunucudan sunucuya gidiyor.
+ * HTTP endpoint: ?q=arama+terimi ile çağrılır, o terimle Currents API'yi
+ * (https://currentsapi.services) sunucu tarafında çekip JSON olarak döner.
+ * Tarayıcıdan çağrıldığında CORS sorunu olmaz çünkü istek sunucudan
+ * sunucuya gidiyor; ayrıca API anahtarı hiçbir zaman tarayıcıya sızmaz.
  */
 exports.haberleriGetir = onRequest(
-  { cors: true, region: "europe-west1", timeoutSeconds: 20 },
+  { cors: true, region: "europe-west1", timeoutSeconds: 20, secrets: [CURRENTS_API_KEY] },
   async (req, res) => {
     const sorgu = req.query.q;
     if (!sorgu || typeof sorgu !== "string") {
@@ -103,22 +49,41 @@ exports.haberleriGetir = onRequest(
       return;
     }
 
-    try {
-      const rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(
-        sorgu
-      )}&hl=tr&gl=TR&ceid=TR:tr`;
-      const xml = await fetchUrl(rssUrl);
-      const items = parseRssItems(xml, 8);
+    const apiKey = CURRENTS_API_KEY.value();
+    if (!apiKey) {
+      res.status(500).json({ error: "CURRENTS_API_KEY tanımlı değil" });
+      return;
+    }
 
-      if (items.length === 0) {
-        // Teşhis için: hiç haber bulunamadıysa ham yanıtın başını da dönelim.
-        res.status(200).json({ items, debugRawStart: xml.slice(0, 300) });
+    try {
+      const url = `https://api.currentsapi.services/v1/search?keywords=${encodeURIComponent(
+        sorgu
+      )}&language=tr&page_size=8`;
+
+      const { statusCode, body } = await fetchJson(url, { Authorization: apiKey });
+
+      if (statusCode !== 200 || body.status !== "ok" || !Array.isArray(body.news)) {
+        res.status(200).json({ items: [], debugRaw: body });
         return;
       }
 
+      const items = body.news.map((n) => ({
+        title: n.title,
+        link: n.url,
+        pubDate: n.published,
+        source: (() => {
+          try {
+            return new URL(n.url).hostname.replace(/^www\./, "");
+          } catch {
+            return "";
+          }
+        })(),
+        onemliMi: haberOnemliMi(n.title),
+      }));
+
       res.status(200).json({ items });
     } catch (err) {
-      res.status(500).json({ error: "RSS alınamadı", detail: String(err) });
+      res.status(500).json({ error: "Haberler alınamadı", detail: String(err) });
     }
   }
 );
