@@ -217,7 +217,7 @@ function PiyasaNabziContent() {
       <div className="flex flex-col gap-2">
         {gosterilecekYazilar.map((y, i) => (
           
-            <a              key={i}
+            key={i}
             href={y.link}
             target="_blank"
             rel="noopener noreferrer"
