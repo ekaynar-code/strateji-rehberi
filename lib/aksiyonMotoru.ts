@@ -1,7 +1,7 @@
 import type { Distributor } from "./distributors";
 import type { Fuar } from "./fuarlar";
 import type { Todo } from "./todos";
-import type { HaberOgesi } from "./haberler";
+import type { MusavirlikYazisi } from "./haberler";
 import type { Hedef } from "./hedefler";
 import { kalanGun } from "./fuarlar";
 import { todoKalanGun } from "./todos";
@@ -23,7 +23,7 @@ interface AksiyonMotoruGirdisi {
   distributorler: Distributor[];
   fuarlar: Fuar[];
   todos: Todo[];
-  onemliHaberler: HaberOgesi[];
+  onemliHaberler: MusavirlikYazisi[];
   hedef: Hedef | null;
   gerceklesenCiroTry: number;
 }
@@ -92,17 +92,21 @@ export function aksiyonlariHesapla(girdi: AksiyonMotoruGirdisi): AksiyonOnerisi[
       }
     });
 
-  // Kural 4 — dikkat çekici haber + o bölgede fırsat var
+  // Kural 4 — güncel ihale/gelişme + o bölgede fırsat var
   girdi.onemliHaberler.slice(0, 5).forEach((h, i) => {
-    const eslesenBolgeVarMi = girdi.distributorler.some((d) =>
-      h.sorguBasligi.toLowerCase().includes(d.ulke.toLowerCase().split(" ")[0].toLowerCase())
+    const musavirlikUlkesi = h.musavirlik.replace(" Ticaret Müşavirliği", "");
+    const eslesenBolgeVarMi = girdi.distributorler.some(
+      (d) =>
+        musavirlikUlkesi &&
+        (d.ulke.toLowerCase().includes(musavirlikUlkesi.toLowerCase()) ||
+          musavirlikUlkesi.toLowerCase().includes(d.ulke.toLowerCase().split(" ")[0].toLowerCase()))
     );
     if (eslesenBolgeVarMi) {
       oneriler.push({
         id: `haber-${i}`,
         seviye: "bilgi",
         baslik: h.title,
-        aciklama: `"${h.sorguBasligi}" takibinden — mevcut satış fırsatlarınızla ilişkili olabilir.`,
+        aciklama: `${h.musavirlik} bülteninden — mevcut satış fırsatlarınızla ilişkili olabilir.`,
         hedefSekme: "/panel/piyasa-nabzi",
       });
     }

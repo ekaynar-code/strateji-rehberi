@@ -1,50 +1,41 @@
-export interface HaberOgesi {
+export interface MusavirlikYazisi {
   title: string;
   link: string;
-  pubDate: string;
-  source: string;
-  sorguBasligi: string;
-  onemliMi: boolean; // anahtar kelime eşleşmesine göre öne çıkarılsın mı
+  musavirlik: string;
+  tarih: string;
 }
 
-// Cloud Function'ın URL'si. Bölge europe-west1, proje ID'si strateji-rehberi
-// olduğu için Firebase'in standart HTTP function adres formatı kullanılıyor.
+// Cloud Function'ın URL'si.
 const FUNCTION_URL =
-  "https://europe-west1-strateji-rehberi.cloudfunctions.net/haberleriGetir";
+  "https://europe-west1-strateji-rehberi.cloudfunctions.net/musavirlikBultenGetir";
 
 const ONBELLEK_SURESI_MS = 3 * 60 * 1000; // 3 dakika
-const onbellek = new Map<string, { veri: HaberOgesi[]; zaman: number }>();
+const onbellek = new Map<string, { veri: MusavirlikYazisi[]; zaman: number }>();
 
 /**
- * Belirli bir arama sorgusu için haberleri, Firebase Cloud Function üzerinden
- * (sunucu tarafında) çeker. Sunucudan sunucuya istek olduğu için CORS sorunu
- * yaşanmaz — üçüncü parti proxy servislerine bağımlılık ortadan kalkar.
- * Aynı sorgu kısa süre içinde tekrar istenirse önbellekten döner.
+ * T.C. Ticaret Bakanlığı Ticaret Müşavirlikleri bülteninden (İhaleler veya
+ * Güncel Gelişmeler kategorisi), seçilen ülkelere göre filtrelenmiş yazıları
+ * Firebase Cloud Function üzerinden (sunucu tarafında) çeker.
  */
-export async function haberleriGetir(
-  sorgu: string,
-  sorguBasligi: string,
+export async function musavirlikBultenGetir(
+  kategori: "ihaleler" | "guncel",
+  ulkeler: string[],
   zorlaYenile = false
-): Promise<HaberOgesi[]> {
-  const onbellekAnahtari = sorgu;
+): Promise<MusavirlikYazisi[]> {
+  const onbellekAnahtari = `${kategori}:${ulkeler.join(",")}`;
   const onbellekteki = onbellek.get(onbellekAnahtari);
   if (!zorlaYenile && onbellekteki && Date.now() - onbellekteki.zaman < ONBELLEK_SURESI_MS) {
     return onbellekteki.veri;
   }
 
-  const res = await fetch(`${FUNCTION_URL}?q=${encodeURIComponent(sorgu)}`);
-  if (!res.ok) throw new Error("Haberler alınamadı");
+  const params = new URLSearchParams({ kategori, ulkeler: ulkeler.join(",") });
+  const res = await fetch(`${FUNCTION_URL}?${params.toString()}`);
+  if (!res.ok) throw new Error("Bülten alınamadı");
 
   const data = await res.json();
   if (!Array.isArray(data.items)) throw new Error("Beklenmeyen yanıt formatı");
 
-  const sonuc: HaberOgesi[] = data.items.map(
-    (item: { title: string; link: string; pubDate: string; source: string; onemliMi: boolean }) => ({
-      ...item,
-      sorguBasligi,
-    })
-  );
-
+  const sonuc: MusavirlikYazisi[] = data.items;
   onbellek.set(onbellekAnahtari, { veri: sonuc, zaman: Date.now() });
   return sonuc;
 }

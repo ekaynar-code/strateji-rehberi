@@ -11,45 +11,47 @@ import {
 } from "firebase/firestore";
 import { db } from "./firebase";
 
-export interface HaberSorgusu {
+export interface TakipEdilenUlke {
   id: string;
-  baslik: string; // kullanıcıya gösterilen kısa isim, ör. "Körfez otel projeleri"
-  sorgu: string; // arama terimi, ör. "Körfez otel projeleri inşaat"
+  ulkeAdi: string; // Ticaret Bakanlığı sitesindeki ülke adıyla birebir eşleşmeli
   createdAt?: Timestamp;
 }
 
-const COLLECTION = "haber_sorgulari";
+const COLLECTION = "takip_edilen_ulkeler";
 
-export const VARSAYILAN_SORGULAR: Omit<HaberSorgusu, "id" | "createdAt">[] = [
-  { baslik: "Yangın kapısı yönetmeliği", sorgu: "yangın kapısı yönetmeliği" },
-  { baslik: "Balkanlar inşaat sektörü", sorgu: "Balkanlar inşaat sektörü" },
-  { baslik: "Körfez otel projeleri", sorgu: "Körfez otel projeleri inşaat" },
-  { baslik: "Afrika inşaat yatırımı", sorgu: "Afrika inşaat yatırımı" },
+export const VARSAYILAN_ULKELER = [
+  "Suudi Arabistan",
+  "Birleşik Arap Emirlikleri",
+  "Bulgaristan",
+  "Romanya",
+  "Sırbistan",
+  "Mısır",
+  "Fas",
+  "Nijerya",
 ];
 
-export function subscribeHaberSorgulari(
-  callback: (items: HaberSorgusu[]) => void,
+export function subscribeTakipEdilenUlkeler(
+  callback: (items: TakipEdilenUlke[]) => void,
   onError: (err: Error) => void
 ) {
   const q = query(collection(db, COLLECTION), orderBy("createdAt", "asc"));
   return onSnapshot(
     q,
     (snapshot) => {
-      const items = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as HaberSorgusu));
+      const items = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as TakipEdilenUlke));
       callback(items);
     },
     (err) => onError(err as Error)
   );
 }
 
-export async function addHaberSorgusu(baslik: string, sorgu: string) {
+export async function ulkeEkle(ulkeAdi: string) {
   await addDoc(collection(db, COLLECTION), {
-    baslik,
-    sorgu,
+    ulkeAdi,
     createdAt: serverTimestamp(),
   });
 }
 
-export async function deleteHaberSorgusu(id: string) {
+export async function ulkeSil(id: string) {
   await deleteDoc(doc(db, COLLECTION, id));
 }

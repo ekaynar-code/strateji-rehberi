@@ -20,8 +20,8 @@ import {
   type Fuar,
   kalanGun,
 } from "@/lib/fuarlar";
-import { subscribeHaberSorgulari, type HaberSorgusu } from "@/lib/haberSorgulari";
-import { haberleriGetir, type HaberOgesi } from "@/lib/haberler";
+import { subscribeTakipEdilenUlkeler, type TakipEdilenUlke } from "@/lib/haberSorgulari";
+import { musavirlikBultenGetir, type MusavirlikYazisi } from "@/lib/haberler";
 import { subscribeTodos, todoKalanGun, type Todo } from "@/lib/todos";
 import { subscribeHedef, hedefKaydet, type Hedef } from "@/lib/hedefler";
 import { kurlariGetir, tryyeCevir, type KurVeri } from "@/lib/kurlar";
@@ -54,7 +54,7 @@ function GenelBakisContent() {
   const [fuarlar, setFuarlar] = useState<Fuar[]>([]);
   const [todos, setTodos] = useState<Todo[]>([]);
   const [loading, setLoading] = useState(true);
-  const [onemliHaberler, setOnemliHaberler] = useState<HaberOgesi[]>([]);
+  const [onemliHaberler, setOnemliHaberler] = useState<MusavirlikYazisi[]>([]);
   const [haberYukleniyor, setHaberYukleniyor] = useState(true);
   const [hedef, setHedef] = useState<Hedef | null>(null);
   const [kur, setKur] = useState<KurVeri>({ usdTry: null, eurTry: null });
@@ -149,25 +149,23 @@ function GenelBakisContent() {
     };
   }, []);
 
-  // Piyasa Nabzı'ndaki takip konularına göre en güncel önemli haberleri çek.
+  // Piyasa Nabzı'ndaki takip edilen ülkelere göre en güncel ihaleleri çek.
   useEffect(() => {
     let iptal = false;
 
-    const unsub = subscribeHaberSorgulari(
-      async (sorgular: HaberSorgusu[]) => {
-        if (sorgular.length === 0) {
+    const unsub = subscribeTakipEdilenUlkeler(
+      async (ulkeler: TakipEdilenUlke[]) => {
+        if (ulkeler.length === 0) {
           if (!iptal) setHaberYukleniyor(false);
           return;
         }
         try {
-          const sonuclar = await Promise.all(
-            sorgular.map((s) =>
-              haberleriGetir(s.sorgu, s.baslik).catch(() => [] as HaberOgesi[])
-            )
-          );
+          const sonuc = await musavirlikBultenGetir(
+            "ihaleler",
+            ulkeler.map((u) => u.ulkeAdi)
+          ).catch(() => [] as MusavirlikYazisi[]);
           if (iptal) return;
-          const tumu = sonuclar.flat().filter((h) => h.onemliMi);
-          setOnemliHaberler(tumu.slice(0, 3));
+          setOnemliHaberler(sonuc.slice(0, 3));
         } finally {
           if (!iptal) setHaberYukleniyor(false);
         }
@@ -400,20 +398,22 @@ function GenelBakisContent() {
             className="mb-6 block w-full rounded-xl border border-gray-200 bg-white p-4 text-left transition hover:border-brand-300 hover:bg-brand-50/30"
           >
             <div className="mb-3 flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700">Piyasa Nabzı</span>
+              <span className="text-sm font-medium text-gray-700">Piyasa Nabzı — güncel ihaleler</span>
               <span className="text-xs text-gray-400">Tümünü gör →</span>
             </div>
             {haberYukleniyor ? (
-              <p className="text-sm text-gray-400">Haberler yükleniyor…</p>
+              <p className="text-sm text-gray-400">Yükleniyor…</p>
             ) : onemliHaberler.length === 0 ? (
-              <p className="text-sm text-gray-400">Şu anda dikkat çekici bir haber yok.</p>
+              <p className="text-sm text-gray-400">Takip edilen ülkelerde güncel ihale yok.</p>
             ) : (
               <div className="flex flex-col gap-1.5">
                 {onemliHaberler.map((h, i) => (
                   <div key={i} className="flex items-start gap-2 text-sm">
-                    <span className="mt-0.5 shrink-0 rounded-full bg-brand-100 px-1.5 py-0.5 text-[10px] font-medium text-brand-600">
-                      dikkat
-                    </span>
+                    {h.musavirlik && (
+                      <span className="mt-0.5 shrink-0 rounded-full bg-brand-100 px-1.5 py-0.5 text-[10px] font-medium text-brand-600">
+                        {h.musavirlik.replace(" Ticaret Müşavirliği", "")}
+                      </span>
+                    )}
                     <span className="text-gray-800">{h.title}</span>
                   </div>
                 ))}
