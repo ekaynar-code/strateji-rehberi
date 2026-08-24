@@ -36,6 +36,8 @@ export interface Distributor {
   fiyatPozisyonu?: FiyatPozisyonu;
   gucluYonler?: string;
   zayifYonler?: string;
+  sonMesajTarihi?: string; // YYYY-MM-DD, en son gönderilen mesajın tarihi
+  sonMesajTipi?: string; // örn. "İlk temas", "Takip mesajı"
   createdAt?: Timestamp;
   updatedAt?: Timestamp;
 }
@@ -115,6 +117,31 @@ export async function updateDistributor(id: string, data: Partial<Omit<Distribut
 
 export async function deleteDistributor(id: string) {
   await deleteDoc(doc(db, COLLECTION, id));
+}
+
+/**
+ * Bir kayıt için "mesaj gönderildi" olduğunu işaretler: gönderim tarihini
+ * ve mesaj tipini kaydeder, durumu bir sonraki mantıklı aşamaya ilerletir
+ * (sadece durum henüz o aşamaya geçmemişse — geri almaz).
+ */
+export async function mesajGonderildiIsaretle(
+  id: string,
+  mevcutDurum: Durum,
+  mesajTipiEtiketi: string
+) {
+  const bugun = new Date().toISOString().slice(0, 10);
+  const guncelleme: Partial<Distributor> = {
+    sonMesajTarihi: bugun,
+    sonMesajTipi: mesajTipiEtiketi,
+  };
+
+  // Durumu sadece henüz ilerlememişse ilerlet — "yanıt bekleniyor" veya
+  // sonrasındaki bir aşamada olan kaydı geri "temas edildi"ye çekmeyelim.
+  if (mevcutDurum === "arastirmada") {
+    guncelleme.durum = "temas_edildi";
+  }
+
+  await updateDistributor(id, guncelleme);
 }
 
 import { csvAyristir } from "./csv";
