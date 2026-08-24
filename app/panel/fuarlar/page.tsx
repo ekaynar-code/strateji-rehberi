@@ -61,6 +61,16 @@ function FuarlarContent() {
     [items, bolgeFiltre]
   );
 
+  const aktifFuarlar = useMemo(
+    () => filtered.filter((i) => i.durum !== "katilinmayacak"),
+    [filtered]
+  );
+  const katilinmayacakFuarlar = useMemo(
+    () => filtered.filter((i) => i.durum === "katilinmayacak"),
+    [filtered]
+  );
+  const [arsivAcik, setArsivAcik] = useState(false);
+
   const yaklasanSayisi = useMemo(
     () =>
       items.filter((i) => {
@@ -140,11 +150,41 @@ function FuarlarContent() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        {filtered.map((item) => (
-          <FuarCard key={item.id} item={item} />
-        ))}
-      </div>
+      {aktifFuarlar.length > 0 && (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {aktifFuarlar.map((item) => (
+            <FuarCard key={item.id} item={item} />
+          ))}
+        </div>
+      )}
+
+      {katilinmayacakFuarlar.length > 0 && (
+        <div className="mt-5">
+          <button
+            onClick={() => setArsivAcik((a) => !a)}
+            className="flex w-full items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-left transition hover:bg-gray-100"
+          >
+            <span className="flex items-center gap-1.5 text-sm text-gray-600">
+              <svg
+                viewBox="0 0 16 16"
+                fill="none"
+                className={`h-3.5 w-3.5 shrink-0 text-gray-400 transition-transform ${arsivAcik ? "rotate-90" : ""}`}
+              >
+                <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Katılınmayacak ({katilinmayacakFuarlar.length})
+            </span>
+          </button>
+
+          {arsivAcik && (
+            <div className="mt-2 grid grid-cols-1 gap-3 opacity-70 sm:grid-cols-2">
+              {katilinmayacakFuarlar.map((item) => (
+                <FuarCard key={item.id} item={item} />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </main>
   );
 }
