@@ -100,6 +100,16 @@ export default function MesajOlusturModal({
     }
   }
 
+  function handleEpostaAc() {
+    // iletisimBilgisi bir e-posta adresi gibi görünüyorsa (@ içeriyorsa)
+    // alıcı olarak otomatik doldurulur, değilse boş bırakılır.
+    const aliciEposta = kayit.iletisimBilgisi?.includes("@") ? kayit.iletisimBilgisi.trim() : "";
+    const url = `mailto:${encodeURIComponent(aliciEposta)}?subject=${encodeURIComponent(
+      mesaj.konu
+    )}&body=${encodeURIComponent(mesaj.govde)}`;
+    window.location.href = url;
+  }
+
   async function handleGonderildiIsaretle() {
     setIsaretleniyor(true);
     try {
@@ -233,12 +243,20 @@ export default function MesajOlusturModal({
             </div>
           )}
 
-          <button
-            onClick={handleKopyala}
-            className="mt-3 w-full rounded-lg bg-brand-400 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-brand-500"
-          >
-            {kopyalandi ? "Kopyalandı ✓" : "Metni kopyala"}
-          </button>
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+            <button
+              onClick={handleEpostaAc}
+              className="flex-1 rounded-lg bg-brand-400 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-brand-500"
+            >
+              E-posta ile gönder
+            </button>
+            <button
+              onClick={handleKopyala}
+              className="flex-1 rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-700 transition hover:bg-gray-50"
+            >
+              {kopyalandi ? "Kopyalandı ✓" : "Metni kopyala"}
+            </button>
+          </div>
 
           {kayit.sonMesajTarihi && !isaretlendi && (
             <p className="mt-2 text-center text-xs text-gray-400">
