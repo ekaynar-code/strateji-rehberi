@@ -6,7 +6,6 @@ import TopBar from "@/components/TopBar";
 import PanelTabs from "@/components/PanelTabs";
 import FuarForm from "@/components/FuarForm";
 import FuarCard from "@/components/FuarCard";
-import FuarCsvIceAktarForm from "@/components/FuarCsvIceAktarForm";
 import {
   subscribeFuarlar,
   type Fuar,
@@ -39,7 +38,6 @@ function FuarlarContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showForm, setShowForm] = useState(false);
-  const [showCsvForm, setShowCsvForm] = useState(false);
   const [bolgeFiltre, setBolgeFiltre] = useState<FuarBolge | "hepsi">("hepsi");
 
   useEffect(() => {
@@ -103,21 +101,6 @@ function FuarlarContent() {
       {showForm && (
         <div className="mb-5">
           <FuarForm onDone={() => setShowForm(false)} />
-        </div>
-      )}
-
-      <div className="mb-5 flex justify-end">
-        <button
-          onClick={() => setShowCsvForm((s) => !s)}
-          className="text-sm text-gray-500 underline decoration-dotted hover:text-brand-500"
-        >
-          {showCsvForm ? "CSV içe aktarmayı kapat" : "CSV ile toplu ekle"}
-        </button>
-      </div>
-
-      {showCsvForm && (
-        <div className="mb-5">
-          <FuarCsvIceAktarForm onDone={() => setShowCsvForm(false)} />
         </div>
       )}
 

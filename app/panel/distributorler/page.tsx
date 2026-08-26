@@ -6,7 +6,6 @@ import TopBar from "@/components/TopBar";
 import PanelTabs from "@/components/PanelTabs";
 import DistributorForm from "@/components/DistributorForm";
 import DistributorCard from "@/components/DistributorCard";
-import CsvIceAktarForm from "@/components/CsvIceAktarForm";
 import KanbanPano from "@/components/KanbanPano";
 import {
   subscribeDistributors,
@@ -38,7 +37,6 @@ function PanelContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showForm, setShowForm] = useState(false);
-  const [showCsvForm, setShowCsvForm] = useState(false);
   const [bolgeFiltre, setBolgeFiltre] = useState<Bolge | "hepsi">("hepsi");
   const [gorunum, setGorunum] = useState<"liste" | "kanban">("liste");
   const [profilFiltre, setProfilFiltre] = useState<Profil | "hepsi">("hepsi");
@@ -152,19 +150,7 @@ function PanelContent() {
             Kanban
           </button>
         </div>
-        <button
-          onClick={() => setShowCsvForm((s) => !s)}
-          className="text-sm text-gray-500 underline decoration-dotted hover:text-brand-500"
-        >
-          {showCsvForm ? "CSV içe aktarmayı kapat" : "CSV ile toplu ekle"}
-        </button>
       </div>
-
-      {showCsvForm && (
-        <div className="mb-5">
-          <CsvIceAktarForm onDone={() => setShowCsvForm(false)} />
-        </div>
-      )}
 
       {showForm && (
         <div className="mb-5">

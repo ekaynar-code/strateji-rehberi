@@ -56,3 +56,27 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Koyu tema — .dark sınıfı <html> etiketine eklendiğinde devreye girer.
+   Gri paleti tersine çeviriyoruz (gray-50 <-> gray-900 vb.) ki bileşenler
+   hiç değişmeden (dark: varyantı eklemeden) koyu görünüme geçsin. */
+.dark {
+  --background: #17181b;
+  --foreground: #eceef0;
+
+  --gray-50: #1b1d21;
+  --gray-100: #24262b;
+  --gray-200: #34373e;
+  --gray-300: #464951;
+  --gray-400: #63666f;
+  --gray-500: #8b8e97;
+  --gray-600: #b8bac1;
+  --gray-700: #dcdde1;
+  --gray-800: #eeeef0;
+  --gray-900: #f7f7f8;
+}
+
+.dark body {
+  background: var(--background);
+  color: var(--foreground);
+}
