@@ -20,10 +20,11 @@ export default function DistributorForm({ onDone }: { onDone: () => void }) {
   const [ulke, setUlke] = useState("");
   const [bolge, setBolge] = useState<Bolge>("balkanlar");
   const [rakipMi, setRakipMi] = useState(false);
-  const [profil, setProfil] = useState<Profil>("distributor");
+  const [profil, setProfil] = useState<Profil>("insaat_firmasi");
   const [durum, setDurum] = useState<Durum>("arastirmada");
   const [iletisimKisisi, setIletisimKisisi] = useState("");
-  const [iletisimBilgisi, setIletisimBilgisi] = useState("");
+  const [eposta, setEposta] = useState("");
+  const [telefon, setTelefon] = useState("");
   const [notlar, setNotlar] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -46,7 +47,8 @@ export default function DistributorForm({ onDone }: { onDone: () => void }) {
         profil: rakipMi ? "uretici" : profil,
         durum,
         iletisimKisisi: iletisimKisisi.trim() || undefined,
-        iletisimBilgisi: iletisimBilgisi.trim() || undefined,
+        eposta: eposta.trim() || undefined,
+        telefon: telefon.trim() || undefined,
         notlar: notlar.trim() || undefined,
       });
       onDone();
@@ -160,11 +162,24 @@ export default function DistributorForm({ onDone }: { onDone: () => void }) {
         </div>
         <div className="sm:col-span-2">
           <label className="mb-1.5 block text-sm font-medium text-gray-700">
-            İletişim bilgisi (e-posta / telefon)
+            E-posta
           </label>
           <input
-            value={iletisimBilgisi}
-            onChange={(e) => setIletisimBilgisi(e.target.value)}
+            type="email"
+            value={eposta}
+            onChange={(e) => setEposta(e.target.value)}
+            placeholder="opsiyonel"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400"
+          />
+        </div>
+        <div className="sm:col-span-2">
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">
+            Telefon
+          </label>
+          <input
+            type="tel"
+            value={telefon}
+            onChange={(e) => setTelefon(e.target.value)}
             placeholder="opsiyonel"
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400"
           />

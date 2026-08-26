@@ -13,7 +13,7 @@ import {
 import { db } from "./firebase";
 
 export type Bolge = "korfez" | "balkanlar" | "afrika" | "turkiye";
-export type Profil = "distributor" | "fitout" | "uretici" | "diger";
+export type Profil = "uretici" | "insaat_firmasi" | "mimarlik_firmasi" | "araci_sirket";
 export type Durum = "arastirmada" | "temas_edildi" | "yanit_bekleniyor" | "gorusme_planlandi" | "anlasma" | "olumsuz";
 export type ParaBirimi = "TRY" | "USD" | "EUR";
 export type FiyatPozisyonu = "dusuk" | "orta" | "yuksek";
@@ -58,10 +58,10 @@ export const BOLGE_LABEL: Record<Bolge, string> = {
 };
 
 export const PROFIL_LABEL: Record<Profil, string> = {
-  distributor: "Distribütör",
-  fitout: "Fit-out kontraktörü",
   uretici: "Üretici (rakip/referans)",
-  diger: "Diğer",
+  insaat_firmasi: "İnşaat firması",
+  mimarlik_firmasi: "Mimarlık firması",
+  araci_sirket: "Aracı şirket",
 };
 
 export const DURUM_LABEL: Record<Durum, string> = {
@@ -148,9 +148,9 @@ export async function mesajGonderildiIsaretle(
 
 import { csvAyristir } from "./csv";
 
-const CSV_BASLIKLARI = ["firmaAdi", "ulke", "bolge", "profil", "iletisimBilgisi", "notlar"] as const;
+const CSV_BASLIKLARI = ["firmaAdi", "ulke", "bolge", "profil", "iletisimKisisi", "eposta", "telefon", "notlar"] as const;
 const GECERLI_BOLGELER: Bolge[] = ["korfez", "balkanlar", "afrika", "turkiye"];
-const GECERLI_PROFILLER: Profil[] = ["distributor", "fitout", "uretici", "diger"];
+const GECERLI_PROFILLER: Profil[] = ["uretici", "insaat_firmasi", "mimarlik_firmasi", "araci_sirket"];
 
 export interface CsvSatirSonucu {
   satirNo: number;
@@ -162,8 +162,9 @@ export interface CsvSatirSonucu {
 
 /**
  * CSV metnini distribütör kayıtlarına çevirip Firestore'a tek tek ekler.
- * Beklenen başlıklar: firmaAdi, ulke, bolge, profil, iletisimBilgisi, notlar
- * (iletisimBilgisi ve notlar opsiyonel; bolge/profil geçerli değerlerden biri olmalı).
+ * Beklenen başlıklar: firmaAdi, ulke, bolge, profil, iletisimKisisi, eposta,
+ * telefon, notlar (firmaAdi ve ulke hariç hepsi opsiyonel; bolge/profil
+ * geçerli değerlerden biri olmalı).
  */
 export async function csvIceAktar(csvMetin: string): Promise<CsvSatirSonucu[]> {
   const satirlar = csvAyristir(csvMetin.trim());
@@ -185,7 +186,7 @@ export async function csvIceAktar(csvMetin: string): Promise<CsvSatirSonucu[]> {
     const firmaAdi = kayit["firmaAdi"] || "";
     const ulke = kayit["ulke"] || "";
     const bolge = kayit["bolge"] as Bolge;
-    const profil = (kayit["profil"] || "diger") as Profil;
+    const profil = (kayit["profil"] || "insaat_firmasi") as Profil;
 
     if (!firmaAdi || !ulke) {
       sonuclar.push({ satirNo, firmaAdi: firmaAdi || "(boş)", basarili: false, hata: "Firma adı veya ülke eksik" });
@@ -207,6 +208,9 @@ export async function csvIceAktar(csvMetin: string): Promise<CsvSatirSonucu[]> {
         bolge,
         profil,
         durum: "arastirmada",
+        iletisimKisisi: kayit["iletisimKisisi"] || undefined,
+        eposta: kayit["eposta"] || undefined,
+        telefon: kayit["telefon"] || undefined,
         iletisimBilgisi: kayit["iletisimBilgisi"] || undefined,
         notlar: kayit["notlar"] || undefined,
       });
