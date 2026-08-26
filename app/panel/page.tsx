@@ -9,6 +9,7 @@ import PanelTabs from "@/components/PanelTabs";
 import ManuelCiroBolumu from "@/components/ManuelCiroBolumu";
 import AksiyonListesi from "@/components/AksiyonListesi";
 import CeoOzetBolumu from "@/components/CeoOzetBolumu";
+import UretimOzetBolumu from "@/components/UretimOzetBolumu";
 import {
   subscribeDistributors,
   type Distributor,
@@ -25,6 +26,8 @@ import { musavirlikBultenGetir, type MusavirlikYazisi } from "@/lib/haberler";
 import { subscribeTodos, todoKalanGun, type Todo } from "@/lib/todos";
 import { subscribeHedef, hedefKaydet, type Hedef } from "@/lib/hedefler";
 import { kurlariGetir, tryyeCevir, type KurVeri } from "@/lib/kurlar";
+import { uretimApiBagliMi, uretimOzetGetir } from "@/lib/uretimApi";
+import { yeniSiparisleriCiroyaEkle } from "@/lib/siparisOtomasyon";
 import {
   subscribeManuelCiro,
   manuelCiroEkle,
@@ -60,6 +63,8 @@ function GenelBakisContent() {
   const [kur, setKur] = useState<KurVeri>({ usdTry: null, eurTry: null });
   const [hedefDuzenle, setHedefDuzenle] = useState(false);
   const [hedefGirisi, setHedefGirisi] = useState("");
+  const [baslangicGirisi, setBaslangicGirisi] = useState("");
+  const [bitisGirisi, setBitisGirisi] = useState("");
   const [hedefDetayAcik, setHedefDetayAcik] = useState(false);
   const [manuelKayitlar, setManuelKayitlar] = useState<ManuelCiroKaydi[]>([]);
   const [manuelFormAcik, setManuelFormAcik] = useState(false);
@@ -92,10 +97,25 @@ function GenelBakisContent() {
     };
   }, []);
 
+  // Aktif hedef dönemi belliyken, üretim API'sinden yeni siparişleri çekip
+  // otomatik olarak manuel ciro kaydına ekle (daha önce eklenmemişse).
+  useEffect(() => {
+    if (!hedef || !uretimApiBagliMi()) return;
+    let iptal = false;
+    uretimOzetGetir()
+      .then((ozet) => yeniSiparisleriCiroyaEkle(ozet, hedef))
+      .catch(() => {});
+    return () => {
+      iptal = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hedef?.baslangic, hedef?.bitis]);
+
   async function handleHedefKaydet() {
     const sayi = parseFloat(hedefGirisi);
     if (isNaN(sayi) || sayi <= 0) return;
-    await hedefKaydet(new Date().getFullYear(), sayi);
+    if (!baslangicGirisi || !bitisGirisi) return;
+    await hedefKaydet(baslangicGirisi, bitisGirisi, sayi);
     setHedefDuzenle(false);
     setHedefGirisi("");
   }
@@ -277,16 +297,20 @@ function GenelBakisContent() {
 
           <CeoOzetBolumu />
 
-          {/* Yıllık ciro hedefi */}
+          <UretimOzetBolumu />
+
+          {/* Ciro hedefi (dönem bazlı) */}
           <div className="mb-6 rounded-xl border border-gray-200 bg-white p-4">
             <div className="mb-2 flex items-center justify-between">
               <span className="text-sm font-medium text-gray-700">
-                {hedef ? `${hedef.yil} yıllık ciro hedefi` : "Yıllık ciro hedefi"}
+                {hedef ? `Ciro hedefi (${hedef.baslangic} – ${hedef.bitis})` : "Ciro hedefi"}
               </span>
               {!hedefDuzenle && (
                 <button
                   onClick={() => {
                     setHedefGirisi(hedef?.hedefTry.toString() || "");
+                    setBaslangicGirisi(hedef?.baslangic || "");
+                    setBitisGirisi(hedef?.bitis || "");
                     setHedefDuzenle(true);
                   }}
                   className="text-xs text-gray-400 hover:text-brand-500"
@@ -297,26 +321,48 @@ function GenelBakisContent() {
             </div>
 
             {hedefDuzenle ? (
-              <div className="flex flex-wrap items-center gap-2">
-                <input
-                  type="number"
-                  value={hedefGirisi}
-                  onChange={(e) => setHedefGirisi(e.target.value)}
-                  placeholder="Yıllık toplam ciro hedefi (TRY)"
-                  className="min-w-0 flex-1 rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm outline-none focus:border-brand-400"
-                />
-                <button
-                  onClick={handleHedefKaydet}
-                  className="shrink-0 rounded-lg bg-brand-400 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-500"
-                >
-                  Kaydet
-                </button>
-                <button
-                  onClick={() => setHedefDuzenle(false)}
-                  className="shrink-0 text-sm text-gray-500 hover:underline"
-                >
-                  Vazgeç
-                </button>
+              <div className="flex flex-col gap-2">
+                <div className="flex flex-wrap gap-2">
+                  <div className="flex min-w-0 flex-1 flex-col gap-1">
+                    <label className="text-xs text-gray-500">Başlangıç</label>
+                    <input
+                      type="date"
+                      value={baslangicGirisi}
+                      onChange={(e) => setBaslangicGirisi(e.target.value)}
+                      className="rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm outline-none focus:border-brand-400"
+                    />
+                  </div>
+                  <div className="flex min-w-0 flex-1 flex-col gap-1">
+                    <label className="text-xs text-gray-500">Bitiş</label>
+                    <input
+                      type="date"
+                      value={bitisGirisi}
+                      onChange={(e) => setBitisGirisi(e.target.value)}
+                      className="rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm outline-none focus:border-brand-400"
+                    />
+                  </div>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <input
+                    type="number"
+                    value={hedefGirisi}
+                    onChange={(e) => setHedefGirisi(e.target.value)}
+                    placeholder="Dönem toplam ciro hedefi (TRY)"
+                    className="min-w-0 flex-1 rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm outline-none focus:border-brand-400"
+                  />
+                  <button
+                    onClick={handleHedefKaydet}
+                    className="shrink-0 rounded-lg bg-brand-400 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-500"
+                  >
+                    Kaydet
+                  </button>
+                  <button
+                    onClick={() => setHedefDuzenle(false)}
+                    className="shrink-0 text-sm text-gray-500 hover:underline"
+                  >
+                    Vazgeç
+                  </button>
+                </div>
               </div>
             ) : hedef ? (
               <>
