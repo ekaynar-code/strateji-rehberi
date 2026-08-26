@@ -2,9 +2,9 @@ import { doc, getDoc, setDoc, onSnapshot } from "firebase/firestore";
 import { db } from "./firebase";
 
 export interface Hedef {
-  baslangic: string;
-  bitis: string;
-  hedefTry: number;
+  baslangic: string; // YYYY-MM-DD
+  bitis: string; // YYYY-MM-DD
+  hedefTry: number; // dönem toplam ciro hedefi (TRY), yerli + ihracat birleşik
 }
 
 const COLLECTION = "ayarlar";

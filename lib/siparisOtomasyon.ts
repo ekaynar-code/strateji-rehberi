@@ -25,6 +25,12 @@ export async function yeniSiparisleriCiroyaEkle(
 ): Promise<{ eklenen: number; atlananTutarsiz: number }> {
   if (!hedef) return { eklenen: 0, atlananTutarsiz: 0 };
 
+  // API şu an sipariş bazlı liste döndürmüyorsa (sadece özet sayılar
+  // geliyorsa), otomatik ekleme yapacak bir şey yok — sessizce çık.
+  if (!ozet.siparisler.liste || ozet.siparisler.liste.length === 0) {
+    return { eklenen: 0, atlananTutarsiz: 0 };
+  }
+
   // Daha önce hangi sipariş no'larının eklendiğini kontrol etmek için
   // manuel_ciro koleksiyonundaki tüm kayıtları çekip client tarafında
   // filtreliyoruz — böylece ekstra bir Firestore composite index gerekmiyor.

@@ -17,8 +17,8 @@ export interface ManuelCiroKaydi {
   tutar: number;
   paraBirimi: ParaBirimi;
   not: string;
-  tarih: string;
-  kaynakSiparisNo?: string;
+  tarih: string; // YYYY-MM-DD, satışın gerçekleştiği tarih
+  kaynakSiparisNo?: string; // otomatik eklenen kayıtlarda, mükerrer eklemeyi önlemek için
   createdAt?: Timestamp;
 }
 

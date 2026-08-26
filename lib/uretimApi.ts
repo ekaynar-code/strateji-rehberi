@@ -20,7 +20,8 @@ export interface UretimOzet {
     aktif: number;
     tamamlandi: number;
     geciken: number;
-    liste: {
+    yedi_gun?: number;
+    liste?: {
       siparis_no: string;
       musteri: string;
       teslim: string;

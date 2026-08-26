@@ -117,7 +117,13 @@ export default function UretimOzetBolumu() {
             </div>
           </div>
 
-          {ozet.siparisler.liste.length > 0 && (
+          {ozet.siparisler.yedi_gun !== undefined && ozet.siparisler.yedi_gun > 0 && (
+            <div className="mb-3 text-xs text-amber-600">
+              {ozet.siparisler.yedi_gun} sipariş önümüzdeki 7 gün içinde teslim edilecek.
+            </div>
+          )}
+
+          {ozet.siparisler.liste && ozet.siparisler.liste.length > 0 && (
             <div className="mb-3">
               <div className="mb-1.5 text-xs font-medium text-gray-500">Aktif siparişler</div>
               <div className="flex flex-col gap-1">
