@@ -35,7 +35,7 @@ export default function BaglantiDurumu() {
 
   if (!cevrimici) {
     return (
-      <div className="border-b border-amber-200 bg-amber-50 px-4 py-2 text-center text-xs text-amber-800">
+      <div className="border-b border-gray-300 bg-gray-100 px-4 py-2 text-center text-xs text-gray-700">
         İnternet bağlantısı yok — yaptığınız değişiklikler kaydedilecek ve bağlantı geri gelince otomatik gönderilecek.
       </div>
     );
@@ -43,7 +43,7 @@ export default function BaglantiDurumu() {
 
   if (tekrarBagalandiMesaji) {
     return (
-      <div className="border-b border-green-200 bg-green-50 px-4 py-2 text-center text-xs text-green-800">
+      <div className="border-b border-brand-200 bg-brand-50 px-4 py-2 text-center text-xs text-brand-600">
         Bağlantı geri geldi — bekleyen değişiklikler gönderiliyor.
       </div>
     );
