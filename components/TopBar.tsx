@@ -7,6 +7,7 @@ import { auth } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import KurSeridi from "@/components/KurSeridi";
 import KartvizitlerModal from "@/components/KartvizitlerModal";
+import BaglantiDurumu from "@/components/BaglantiDurumu";
 
 export default function TopBar() {
   const { user } = useAuth();
@@ -71,6 +72,7 @@ export default function TopBar() {
         </div>
       </div>
       <KurSeridi />
+      <BaglantiDurumu />
 
       {kartvizitAcik && <KartvizitlerModal onKapat={() => setKartvizitAcik(false)} />}
     </header>

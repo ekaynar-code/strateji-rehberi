@@ -1,6 +1,10 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import {
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+} from "firebase/firestore";
 
 // Bu bilgileri Firebase Console > Project settings > General > Your apps
 // bölümünden alıp aşağıya yapıştırın. Değerleri .env.local dosyasında
@@ -17,5 +21,16 @@ const firebaseConfig = {
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
-export const db = getFirestore(app);
+
+// Kalıcı yerel önbellek: internet bağlantısı kesildiğinde yapılan
+// değişiklikler (ekleme/güncelleme/silme) tarayıcıda kuyruğa alınır,
+// bağlantı geri geldiğinde otomatik olarak Firestore'a gönderilir.
+// persistentMultipleTabManager, panel birden fazla sekmede açıksa da
+// önbelleğin tutarlı kalmasını sağlar.
+export const db = initializeFirestore(app, {
+  localCache: persistentLocalCache({
+    tabManager: persistentMultipleTabManager(),
+  }),
+});
+
 export default app;
