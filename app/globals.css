@@ -64,14 +64,14 @@ body {
   --background: #17181b;
   --foreground: #eceef0;
 
-  --gray-50: #1b1d21;
-  --gray-100: #24262b;
-  --gray-200: #34373e;
-  --gray-300: #464951;
-  --gray-400: #63666f;
-  --gray-500: #8b8e97;
-  --gray-600: #b8bac1;
-  --gray-700: #dcdde1;
+  --gray-50: #202226;
+  --gray-100: #292b30;
+  --gray-200: #3a3d44;
+  --gray-300: #4d5058;
+  --gray-400: #797d87;
+  --gray-500: #9a9da5;
+  --gray-600: #c1c3c9;
+  --gray-700: #dfe0e3;
   --gray-800: #eeeef0;
   --gray-900: #f7f7f8;
 }
@@ -79,4 +79,11 @@ body {
 .dark body {
   background: var(--background);
   color: var(--foreground);
+}
+
+/* Bileşenler sabit bg-white / border-white kullanıyor — koyu temada bunları
+   da kart rengine (gray-50, en açık ton) çeviriyoruz ki beyaz kartlar koyu
+   arka planda "delik" gibi durmasın ve içindeki metin okunaklı kalsın. */
+.dark .bg-white {
+  background-color: var(--gray-50) !important;
 }
