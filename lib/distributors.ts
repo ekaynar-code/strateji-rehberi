@@ -73,6 +73,61 @@ export const DURUM_LABEL: Record<Durum, string> = {
   olumsuz: "Olumsuz sonuçlandı",
 };
 
+// Bilinen ülke adlarını bölgelere eşler — kayıt formunda ülke yazıldığında
+// bölgeyi otomatik önermek için kullanılır. Kullanıcı yine de bölgeyi elle
+// değiştirebilir, bu sadece bir öneri/varsayılan.
+const ULKE_BOLGE_ESLEME: Record<string, Bolge> = {
+  "türkiye": "turkiye",
+  "turkiye": "turkiye",
+  "suudi arabistan": "korfez",
+  "birleşik arap emirlikleri": "korfez",
+  "bae": "korfez",
+  "katar": "korfez",
+  "kuveyt": "korfez",
+  "bahreyn": "korfez",
+  "umman": "korfez",
+  "ürdün": "korfez",
+  "urdun": "korfez",
+  "lübnan": "korfez",
+  "lubnan": "korfez",
+  "irak": "korfez",
+  "bulgaristan": "balkanlar",
+  "romanya": "balkanlar",
+  "sırbistan": "balkanlar",
+  "sirbistan": "balkanlar",
+  "hırvatistan": "balkanlar",
+  "hirvatistan": "balkanlar",
+  "yunanistan": "balkanlar",
+  "makedonya": "balkanlar",
+  "kosova": "balkanlar",
+  "bosna hersek": "balkanlar",
+  "arnavutluk": "balkanlar",
+  "polonya": "balkanlar",
+  "ukrayna": "balkanlar",
+  "mısır": "afrika",
+  "misir": "afrika",
+  "fas": "afrika",
+  "cezayir": "afrika",
+  "tunus": "afrika",
+  "nijerya": "afrika",
+  "kenya": "afrika",
+  "ruanda": "afrika",
+  "libya": "afrika",
+  "güney afrika": "afrika",
+  "guney afrika": "afrika",
+  "etiyopya": "afrika",
+  "gana": "afrika",
+};
+
+/**
+ * Girilen ülke adına göre en olası bölgeyi döner. Bilinmeyen bir ülke
+ * adı için null döner — bu durumda kullanıcı bölgeyi elle seçmeye devam eder.
+ */
+export function ulkedenBolgeTahminEt(ulke: string): Bolge | null {
+  const anahtar = ulke.trim().toLowerCase();
+  return ULKE_BOLGE_ESLEME[anahtar] || null;
+}
+
 const COLLECTION = "distributors";
 
 export function subscribeDistributors(

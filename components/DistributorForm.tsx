@@ -6,6 +6,7 @@ import {
   BOLGE_LABEL,
   PROFIL_LABEL,
   DURUM_LABEL,
+  ulkedenBolgeTahminEt,
   type Bolge,
   type Profil,
   type Durum,
@@ -19,6 +20,7 @@ export default function DistributorForm({ onDone }: { onDone: () => void }) {
   const [firmaAdi, setFirmaAdi] = useState("");
   const [ulke, setUlke] = useState("");
   const [bolge, setBolge] = useState<Bolge>("balkanlar");
+  const [bolgeElleDegistirildi, setBolgeElleDegistirildi] = useState(false);
   const [profil, setProfil] = useState<Profil>("insaat_firmasi");
   const [durum, setDurum] = useState<Durum>("arastirmada");
   const [iletisimKisisi, setIletisimKisisi] = useState("");
@@ -27,6 +29,20 @@ export default function DistributorForm({ onDone }: { onDone: () => void }) {
   const [notlar, setNotlar] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  function handleUlkeChange(deger: string) {
+    setUlke(deger);
+    // Kullanıcı bölgeyi henüz elle değiştirmediyse, ülkeye göre otomatik öner.
+    if (!bolgeElleDegistirildi) {
+      const tahmin = ulkedenBolgeTahminEt(deger);
+      if (tahmin) setBolge(tahmin);
+    }
+  }
+
+  function handleBolgeChange(deger: Bolge) {
+    setBolge(deger);
+    setBolgeElleDegistirildi(true);
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -81,7 +97,7 @@ export default function DistributorForm({ onDone }: { onDone: () => void }) {
           </label>
           <input
             value={ulke}
-            onChange={(e) => setUlke(e.target.value)}
+            onChange={(e) => handleUlkeChange(e.target.value)}
             placeholder="örn. Bulgaristan"
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400"
           />
@@ -92,7 +108,7 @@ export default function DistributorForm({ onDone }: { onDone: () => void }) {
           </label>
           <select
             value={bolge}
-            onChange={(e) => setBolge(e.target.value as Bolge)}
+            onChange={(e) => handleBolgeChange(e.target.value as Bolge)}
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400"
           >
             {BOLGELER.map((b) => (

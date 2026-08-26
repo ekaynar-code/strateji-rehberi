@@ -12,6 +12,7 @@ import {
   type Durum,
   type ParaBirimi,
   type FiyatPozisyonu,
+  type Profil,
 } from "@/lib/distributors";
 import MesajOlusturModal from "@/components/MesajOlusturModal";
 
@@ -27,6 +28,7 @@ const DURUM_RENK: Record<Durum, string> = {
 const PARA_BIRIMLERI: ParaBirimi[] = ["TRY", "USD", "EUR"];
 const PARA_SEMBOLU: Record<ParaBirimi, string> = { TRY: "₺", USD: "$", EUR: "€" };
 const FIYAT_POZISYONLARI: FiyatPozisyonu[] = ["dusuk", "orta", "yuksek"];
+const PROFILLER: Profil[] = ["uretici", "insaat_firmasi", "mimarlik_firmasi", "araci_sirket"];
 
 function formatTutar(deger: number, paraBirimi: ParaBirimi): string {
   return `${PARA_SEMBOLU[paraBirimi]}${deger.toLocaleString("tr-TR", { maximumFractionDigits: 0 })}`;
@@ -48,6 +50,7 @@ export default function DistributorCard({ item }: { item: Distributor }) {
   const [bilgiDuzenleAcik, setBilgiDuzenleAcik] = useState(false);
   const [firmaAdiGirisi, setFirmaAdiGirisi] = useState(item.firmaAdi);
   const [ulkeGirisi, setUlkeGirisi] = useState(item.ulke);
+  const [profilGirisi, setProfilGirisi] = useState<Profil>(item.profil);
   const [iletisimKisisiGirisi, setIletisimKisisiGirisi] = useState(item.iletisimKisisi || "");
   const [epostaGirisi, setEpostaGirisi] = useState(item.eposta || "");
   const [telefonGirisi, setTelefonGirisi] = useState(item.telefon || "");
@@ -60,6 +63,7 @@ export default function DistributorCard({ item }: { item: Distributor }) {
       await updateDistributor(item.id, {
         firmaAdi: firmaAdiGirisi.trim(),
         ulke: ulkeGirisi.trim(),
+        profil: profilGirisi,
         iletisimKisisi: iletisimKisisiGirisi.trim() || undefined,
         eposta: epostaGirisi.trim() || undefined,
         telefon: telefonGirisi.trim() || undefined,
@@ -74,6 +78,7 @@ export default function DistributorCard({ item }: { item: Distributor }) {
   function handleBilgiVazgec() {
     setFirmaAdiGirisi(item.firmaAdi);
     setUlkeGirisi(item.ulke);
+    setProfilGirisi(item.profil);
     setIletisimKisisiGirisi(item.iletisimKisisi || "");
     setEpostaGirisi(item.eposta || "");
     setTelefonGirisi(item.telefon || "");
@@ -155,6 +160,17 @@ export default function DistributorCard({ item }: { item: Distributor }) {
                 placeholder="Ülke"
                 className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm outline-none focus:border-brand-400"
               />
+              <select
+                value={profilGirisi}
+                onChange={(e) => setProfilGirisi(e.target.value as Profil)}
+                className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm outline-none focus:border-brand-400"
+              >
+                {PROFILLER.map((p) => (
+                  <option key={p} value={p}>
+                    {PROFIL_LABEL[p]}
+                  </option>
+                ))}
+              </select>
               <input
                 value={iletisimKisisiGirisi}
                 onChange={(e) => setIletisimKisisiGirisi(e.target.value)}
