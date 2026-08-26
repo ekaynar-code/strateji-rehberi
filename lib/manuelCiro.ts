@@ -17,7 +17,8 @@ export interface ManuelCiroKaydi {
   tutar: number;
   paraBirimi: ParaBirimi;
   not: string;
-  tarih: string; // YYYY-MM-DD, satışın gerçekleştiği tarih
+  tarih: string;
+  kaynakSiparisNo?: string;
   createdAt?: Timestamp;
 }
 
@@ -38,12 +39,19 @@ export function subscribeManuelCiro(
   );
 }
 
-export async function manuelCiroEkle(tutar: number, paraBirimi: ParaBirimi, not: string, tarih: string) {
+export async function manuelCiroEkle(
+  tutar: number,
+  paraBirimi: ParaBirimi,
+  not: string,
+  tarih: string,
+  kaynakSiparisNo?: string
+) {
   await addDoc(collection(db, COLLECTION), {
     tutar,
     paraBirimi,
     not,
     tarih,
+    ...(kaynakSiparisNo ? { kaynakSiparisNo } : {}),
     createdAt: serverTimestamp(),
   });
 }

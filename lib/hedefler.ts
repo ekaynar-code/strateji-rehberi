@@ -2,8 +2,9 @@ import { doc, getDoc, setDoc, onSnapshot } from "firebase/firestore";
 import { db } from "./firebase";
 
 export interface Hedef {
-  yil: number;
-  hedefTry: number; // yıllık toplam ciro hedefi (TRY), yerli + ihracat birleşik
+  baslangic: string;
+  bitis: string;
+  hedefTry: number;
 }
 
 const COLLECTION = "ayarlar";
@@ -25,19 +26,19 @@ export function subscribeHedef(
         return;
       }
       const data = snap.data();
-      callback({ yil: data.yil, hedefTry: data.hedefTry });
+      callback({ baslangic: data.baslangic, bitis: data.bitis, hedefTry: data.hedefTry });
     },
     (err) => onError(err as Error)
   );
 }
 
-export async function hedefKaydet(yil: number, hedefTry: number) {
-  await setDoc(belgeYolu(), { yil, hedefTry });
+export async function hedefKaydet(baslangic: string, bitis: string, hedefTry: number) {
+  await setDoc(belgeYolu(), { baslangic, bitis, hedefTry });
 }
 
 export async function hedefGetir(): Promise<Hedef | null> {
   const snap = await getDoc(belgeYolu());
   if (!snap.exists()) return null;
   const data = snap.data();
-  return { yil: data.yil, hedefTry: data.hedefTry };
+  return { baslangic: data.baslangic, bitis: data.bitis, hedefTry: data.hedefTry };
 }
