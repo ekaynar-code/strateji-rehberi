@@ -101,9 +101,19 @@ export default function MesajOlusturModal({
   }
 
   function handleEpostaAc() {
-    // iletisimBilgisi bir e-posta adresi gibi görünüyorsa (@ içeriyorsa)
-    // alıcı olarak otomatik doldurulur, değilse boş bırakılır.
-    const aliciEposta = kayit.iletisimBilgisi?.includes("@") ? kayit.iletisimBilgisi.trim() : "";
+    let aliciEposta = kayit.eposta?.trim() || "";
+    if (!aliciEposta && kayit.iletisimBilgisi?.includes("@")) {
+      aliciEposta = kayit.iletisimBilgisi.trim();
+    }
+    if (!aliciEposta) {
+      const girilen = window.prompt(
+        dil === "tr"
+          ? `${kayit.firmaAdi} için kayıtlı e-posta yok. Alıcı e-posta adresini girin:`
+          : `No email saved for ${kayit.firmaAdi}. Enter recipient's email address:`
+      );
+      if (!girilen) return; // kullanıcı iptal etti
+      aliciEposta = girilen.trim();
+    }
     const url = `mailto:${encodeURIComponent(aliciEposta)}?subject=${encodeURIComponent(
       mesaj.konu
     )}&body=${encodeURIComponent(mesaj.govde)}`;

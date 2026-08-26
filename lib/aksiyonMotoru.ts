@@ -3,6 +3,7 @@ import type { Fuar } from "./fuarlar";
 import type { Todo } from "./todos";
 import type { MusavirlikYazisi } from "./haberler";
 import type { Hedef } from "./hedefler";
+import type { UretimOzet } from "./uretimApi";
 import { kalanGun } from "./fuarlar";
 import { todoKalanGun } from "./todos";
 import { BOLGE_LABEL, type Bolge } from "./distributors";
@@ -26,6 +27,7 @@ interface AksiyonMotoruGirdisi {
   onemliHaberler: MusavirlikYazisi[];
   hedef: Hedef | null;
   gerceklesenCiroTry: number;
+  uretimOzet?: UretimOzet | null;
 }
 
 /**
@@ -129,6 +131,18 @@ export function aksiyonlariHesapla(girdi: AksiyonMotoruGirdisi): AksiyonOnerisi[
         hedefSekme: "/panel",
       });
     }
+  }
+
+  // Kural 6 — geciken siparişler
+  if (girdi.uretimOzet && girdi.uretimOzet.siparisler.geciken > 0) {
+    const gecikenSayisi = girdi.uretimOzet.siparisler.geciken;
+    oneriler.push({
+      id: "siparis-geciken",
+      seviye: "acil",
+      baslik: `${gecikenSayisi} sipariş teslim tarihini geçti`,
+      aciklama: `Üretim/sipariş takibinde ${gecikenSayisi} aktif siparişin teslim tarihi geçmiş durumda. Müşterilerle iletişime geçip durumu netleştirmek gerekebilir.`,
+      hedefSekme: "/panel",
+    });
   }
 
   // Önce seviyeye göre sırala (acil > önemli > bilgi)

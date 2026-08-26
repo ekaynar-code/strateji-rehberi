@@ -26,7 +26,9 @@ export interface Distributor {
   profil: Profil;
   durum: Durum;
   iletisimKisisi?: string;
-  iletisimBilgisi?: string;
+  iletisimBilgisi?: string; // eski kayıtlar için — yeni kayıtlarda eposta/telefon kullanılır
+  eposta?: string;
+  telefon?: string;
   notlar?: string;
   tahminiCiro?: number; // anlaşma durumunda tahmini yıllık ciro (girilen para biriminde)
   tahminiCiroParaBirimi?: ParaBirimi;

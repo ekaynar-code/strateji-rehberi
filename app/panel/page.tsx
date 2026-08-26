@@ -26,7 +26,7 @@ import { musavirlikBultenGetir, type MusavirlikYazisi } from "@/lib/haberler";
 import { subscribeTodos, todoKalanGun, type Todo } from "@/lib/todos";
 import { subscribeHedef, hedefKaydet, type Hedef } from "@/lib/hedefler";
 import { kurlariGetir, tryyeCevir, type KurVeri } from "@/lib/kurlar";
-import { uretimApiBagliMi, uretimOzetGetir } from "@/lib/uretimApi";
+import { uretimApiBagliMi, uretimOzetGetir, type UretimOzet } from "@/lib/uretimApi";
 import { yeniSiparisleriCiroyaEkle } from "@/lib/siparisOtomasyon";
 import {
   subscribeManuelCiro,
@@ -68,6 +68,7 @@ function GenelBakisContent() {
   const [hedefDetayAcik, setHedefDetayAcik] = useState(false);
   const [manuelKayitlar, setManuelKayitlar] = useState<ManuelCiroKaydi[]>([]);
   const [manuelFormAcik, setManuelFormAcik] = useState(false);
+  const [uretimOzet, setUretimOzet] = useState<UretimOzet | null>(null);
 
   useEffect(() => {
     const unsub = subscribeManuelCiro(
@@ -97,13 +98,17 @@ function GenelBakisContent() {
     };
   }, []);
 
-  // Aktif hedef dönemi belliyken, üretim API'sinden yeni siparişleri çekip
-  // otomatik olarak manuel ciro kaydına ekle (daha önce eklenmemişse).
+  // Üretim API'sinden özet veriyi çek — hem Aksiyon Motoru için (geciken
+  // sipariş uyarısı) hem de aktif hedef döneminde otomatik ciro eklemek için.
   useEffect(() => {
-    if (!hedef || !uretimApiBagliMi()) return;
+    if (!uretimApiBagliMi()) return;
     let iptal = false;
     uretimOzetGetir()
-      .then((ozet) => yeniSiparisleriCiroyaEkle(ozet, hedef))
+      .then((ozet) => {
+        if (iptal) return;
+        setUretimOzet(ozet);
+        if (hedef) yeniSiparisleriCiroyaEkle(ozet, hedef).catch(() => {});
+      })
       .catch(() => {});
     return () => {
       iptal = true;
@@ -278,8 +283,9 @@ function GenelBakisContent() {
         onemliHaberler,
         hedef,
         gerceklesenCiroTry,
+        uretimOzet,
       }),
-    [distributorler, fuarlar, todos, onemliHaberler, hedef, gerceklesenCiroTry]
+    [distributorler, fuarlar, todos, onemliHaberler, hedef, gerceklesenCiroTry, uretimOzet]
   );
 
   return (

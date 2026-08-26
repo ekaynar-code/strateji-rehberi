@@ -49,7 +49,8 @@ export default function DistributorCard({ item }: { item: Distributor }) {
   const [firmaAdiGirisi, setFirmaAdiGirisi] = useState(item.firmaAdi);
   const [ulkeGirisi, setUlkeGirisi] = useState(item.ulke);
   const [iletisimKisisiGirisi, setIletisimKisisiGirisi] = useState(item.iletisimKisisi || "");
-  const [iletisimBilgisiGirisi, setIletisimBilgisiGirisi] = useState(item.iletisimBilgisi || "");
+  const [epostaGirisi, setEpostaGirisi] = useState(item.eposta || "");
+  const [telefonGirisi, setTelefonGirisi] = useState(item.telefon || "");
   const [notlarGirisi, setNotlarGirisi] = useState(item.notlar || "");
 
   async function handleBilgiKaydet() {
@@ -60,7 +61,8 @@ export default function DistributorCard({ item }: { item: Distributor }) {
         firmaAdi: firmaAdiGirisi.trim(),
         ulke: ulkeGirisi.trim(),
         iletisimKisisi: iletisimKisisiGirisi.trim() || undefined,
-        iletisimBilgisi: iletisimBilgisiGirisi.trim() || undefined,
+        eposta: epostaGirisi.trim() || undefined,
+        telefon: telefonGirisi.trim() || undefined,
         notlar: notlarGirisi.trim() || undefined,
       });
       setBilgiDuzenleAcik(false);
@@ -73,7 +75,8 @@ export default function DistributorCard({ item }: { item: Distributor }) {
     setFirmaAdiGirisi(item.firmaAdi);
     setUlkeGirisi(item.ulke);
     setIletisimKisisiGirisi(item.iletisimKisisi || "");
-    setIletisimBilgisiGirisi(item.iletisimBilgisi || "");
+    setEpostaGirisi(item.eposta || "");
+    setTelefonGirisi(item.telefon || "");
     setNotlarGirisi(item.notlar || "");
     setBilgiDuzenleAcik(false);
   }
@@ -159,9 +162,17 @@ export default function DistributorCard({ item }: { item: Distributor }) {
                 className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm outline-none focus:border-brand-400"
               />
               <input
-                value={iletisimBilgisiGirisi}
-                onChange={(e) => setIletisimBilgisiGirisi(e.target.value)}
-                placeholder="İletişim bilgisi (e-posta / telefon)"
+                type="email"
+                value={epostaGirisi}
+                onChange={(e) => setEpostaGirisi(e.target.value)}
+                placeholder="E-posta"
+                className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm outline-none focus:border-brand-400"
+              />
+              <input
+                type="tel"
+                value={telefonGirisi}
+                onChange={(e) => setTelefonGirisi(e.target.value)}
+                placeholder="Telefon"
                 className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm outline-none focus:border-brand-400"
               />
               <textarea
@@ -229,11 +240,12 @@ export default function DistributorCard({ item }: { item: Distributor }) {
         )}
       </div>
 
-      {!bilgiDuzenleAcik && (item.iletisimKisisi || item.iletisimBilgisi) && (
-        <div className="mt-2 text-sm text-gray-600">
-          {item.iletisimKisisi}
-          {item.iletisimKisisi && item.iletisimBilgisi ? " · " : ""}
-          {item.iletisimBilgisi}
+      {!bilgiDuzenleAcik && (item.iletisimKisisi || item.eposta || item.telefon || item.iletisimBilgisi) && (
+        <div className="mt-2 space-y-0.5 text-sm text-gray-600">
+          {item.iletisimKisisi && <div>{item.iletisimKisisi}</div>}
+          {item.eposta && <div>{item.eposta}</div>}
+          {item.telefon && <div>{item.telefon}</div>}
+          {!item.eposta && !item.telefon && item.iletisimBilgisi && <div>{item.iletisimBilgisi}</div>}
         </div>
       )}
 
