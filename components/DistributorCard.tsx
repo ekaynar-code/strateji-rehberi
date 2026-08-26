@@ -45,6 +45,39 @@ export default function DistributorCard({ item }: { item: Distributor }) {
   const [zayifYonlerGirisi, setZayifYonlerGirisi] = useState(item.zayifYonler || "");
   const [mesajModalAcik, setMesajModalAcik] = useState(false);
 
+  const [bilgiDuzenleAcik, setBilgiDuzenleAcik] = useState(false);
+  const [firmaAdiGirisi, setFirmaAdiGirisi] = useState(item.firmaAdi);
+  const [ulkeGirisi, setUlkeGirisi] = useState(item.ulke);
+  const [iletisimKisisiGirisi, setIletisimKisisiGirisi] = useState(item.iletisimKisisi || "");
+  const [iletisimBilgisiGirisi, setIletisimBilgisiGirisi] = useState(item.iletisimBilgisi || "");
+  const [notlarGirisi, setNotlarGirisi] = useState(item.notlar || "");
+
+  async function handleBilgiKaydet() {
+    if (!firmaAdiGirisi.trim() || !ulkeGirisi.trim()) return;
+    setBusy(true);
+    try {
+      await updateDistributor(item.id, {
+        firmaAdi: firmaAdiGirisi.trim(),
+        ulke: ulkeGirisi.trim(),
+        iletisimKisisi: iletisimKisisiGirisi.trim() || undefined,
+        iletisimBilgisi: iletisimBilgisiGirisi.trim() || undefined,
+        notlar: notlarGirisi.trim() || undefined,
+      });
+      setBilgiDuzenleAcik(false);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function handleBilgiVazgec() {
+    setFirmaAdiGirisi(item.firmaAdi);
+    setUlkeGirisi(item.ulke);
+    setIletisimKisisiGirisi(item.iletisimKisisi || "");
+    setIletisimBilgisiGirisi(item.iletisimBilgisi || "");
+    setNotlarGirisi(item.notlar || "");
+    setBilgiDuzenleAcik(false);
+  }
+
   async function handleDurumChange(yeniDurum: Durum) {
     setBusy(true);
     try {
@@ -104,27 +137,99 @@ export default function DistributorCard({ item }: { item: Distributor }) {
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0">
-          <div className="font-medium text-gray-900">{item.firmaAdi}</div>
-          <div className="mt-0.5 text-sm text-gray-500">
-            {item.ulke} · {BOLGE_LABEL[item.bolge]} · {PROFIL_LABEL[item.profil]}
-          </div>
+        <div className="min-w-0 flex-1">
+          {bilgiDuzenleAcik ? (
+            <div className="flex flex-col gap-2">
+              <input
+                value={firmaAdiGirisi}
+                onChange={(e) => setFirmaAdiGirisi(e.target.value)}
+                placeholder="Firma adı"
+                className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm font-medium outline-none focus:border-brand-400"
+              />
+              <input
+                value={ulkeGirisi}
+                onChange={(e) => setUlkeGirisi(e.target.value)}
+                placeholder="Ülke"
+                className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm outline-none focus:border-brand-400"
+              />
+              <input
+                value={iletisimKisisiGirisi}
+                onChange={(e) => setIletisimKisisiGirisi(e.target.value)}
+                placeholder="İletişim kişisi (opsiyonel)"
+                className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm outline-none focus:border-brand-400"
+              />
+              <input
+                value={iletisimBilgisiGirisi}
+                onChange={(e) => setIletisimBilgisiGirisi(e.target.value)}
+                placeholder="İletişim bilgisi (e-posta / telefon)"
+                className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm outline-none focus:border-brand-400"
+              />
+              <textarea
+                value={notlarGirisi}
+                onChange={(e) => setNotlarGirisi(e.target.value)}
+                placeholder="Notlar"
+                rows={3}
+                className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm outline-none focus:border-brand-400"
+              />
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={handleBilgiVazgec}
+                  className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50"
+                >
+                  Vazgeç
+                </button>
+                <button
+                  onClick={handleBilgiKaydet}
+                  disabled={busy || !firmaAdiGirisi.trim() || !ulkeGirisi.trim()}
+                  className="rounded-lg bg-brand-400 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-500 disabled:opacity-50"
+                >
+                  Kaydet
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-start justify-between gap-2">
+                <div className="font-medium text-gray-900">{item.firmaAdi}</div>
+                <button
+                  onClick={() => setBilgiDuzenleAcik(true)}
+                  aria-label="Bilgileri düzenle"
+                  className="shrink-0 rounded-md p-1 text-gray-300 hover:bg-gray-100 hover:text-gray-600"
+                >
+                  <svg viewBox="0 0 16 16" fill="none" className="h-3.5 w-3.5">
+                    <path
+                      d="M11 2l3 3-8 8H3v-3l8-8z"
+                      stroke="currentColor"
+                      strokeWidth="1.3"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+              </div>
+              <div className="mt-0.5 text-sm text-gray-500">
+                {item.ulke} · {BOLGE_LABEL[item.bolge]} · {PROFIL_LABEL[item.profil]}
+              </div>
+            </>
+          )}
         </div>
-        <select
-          value={item.durum}
-          onChange={(e) => handleDurumChange(e.target.value as Durum)}
-          disabled={busy}
-          className={`w-full shrink-0 rounded-lg border-0 px-2.5 py-1.5 text-sm font-medium outline-none sm:w-auto sm:py-1 sm:text-xs ${DURUM_RENK[item.durum]}`}
-        >
-          {(Object.keys(DURUM_LABEL) as Durum[]).map((d) => (
-            <option key={d} value={d}>
-              {DURUM_LABEL[d]}
-            </option>
-          ))}
-        </select>
+        {!bilgiDuzenleAcik && (
+          <select
+            value={item.durum}
+            onChange={(e) => handleDurumChange(e.target.value as Durum)}
+            disabled={busy}
+            className={`w-full shrink-0 rounded-lg border-0 px-2.5 py-1.5 text-sm font-medium outline-none sm:w-auto sm:py-1 sm:text-xs ${DURUM_RENK[item.durum]}`}
+          >
+            {(Object.keys(DURUM_LABEL) as Durum[]).map((d) => (
+              <option key={d} value={d}>
+                {DURUM_LABEL[d]}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
 
-      {(item.iletisimKisisi || item.iletisimBilgisi) && (
+      {!bilgiDuzenleAcik && (item.iletisimKisisi || item.iletisimBilgisi) && (
         <div className="mt-2 text-sm text-gray-600">
           {item.iletisimKisisi}
           {item.iletisimKisisi && item.iletisimBilgisi ? " · " : ""}
@@ -132,7 +237,7 @@ export default function DistributorCard({ item }: { item: Distributor }) {
         </div>
       )}
 
-      {item.notlar && (
+      {!bilgiDuzenleAcik && item.notlar && (
         <p className="mt-2 text-sm text-gray-600">{item.notlar}</p>
       )}
 
