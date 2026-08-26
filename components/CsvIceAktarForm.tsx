@@ -43,8 +43,8 @@ export default function CsvIceAktarForm({ onDone }: { onDone: () => void }) {
         {CSV_ORNEK_BASLIK}
       </code>
       <p className="mb-4 text-xs text-gray-400">
-        bolge: korfez / balkanlar / afrika · profil: distributor / fitout / uretici / diger ·
-        iletisimBilgisi ve notlar opsiyoneldir.
+        bolge: korfez / balkanlar / afrika / turkiye · profil: uretici / insaat_firmasi /
+        mimarlik_firmasi / araci_sirket · iletisimKisisi, eposta, telefon ve notlar opsiyoneldir.
       </p>
 
       <div className="flex flex-col gap-2 sm:flex-row">
