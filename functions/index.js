@@ -272,7 +272,7 @@ function sonGecerliDeger(items, alanAdi) {
 async function evdsSeriGetir(apiKey, seriKodu, alanAdi) {
   const baslangic = bugunTarihiEvdsFormati(20);
   const bitis = bugunTarihiEvdsFormati(0);
-  const url = `https://evds3.tcmb.gov.tr/service/evds/series=${encodeURIComponent(
+  const url = `https://evds3.tcmb.gov.tr/igmevdsms-dis/series=${encodeURIComponent(
     seriKodu
   )}&startDate=${baslangic}&endDate=${bitis}&type=json`;
 
