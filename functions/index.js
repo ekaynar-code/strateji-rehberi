@@ -209,26 +209,37 @@ exports.musavirlikBultenGetir = onRequest(
 function fetchJsonWithKey(url, apiKey, redirectSayisi = 0) {
   return new Promise((resolve, reject) => {
     https
-      .get(url, { headers: { key: apiKey } }, (res) => {
-        // TCMB EVDS bazen yönlendirme (302) döner — bunu takip ediyoruz.
-        if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-          if (redirectSayisi >= 5) {
-            resolve({ statusCode: res.statusCode, body: null, raw: `Çok fazla yönlendirme, son hedef: ${res.headers.location}` });
+      .get(
+        url,
+        {
+          headers: {
+            key: apiKey,
+            Accept: "application/json",
+            "User-Agent":
+              "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          },
+        },
+        (res) => {
+          // TCMB EVDS bazen yönlendirme (302) döner — bunu takip ediyoruz.
+          if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+            if (redirectSayisi >= 5) {
+              resolve({ statusCode: res.statusCode, body: null, raw: `Çok fazla yönlendirme, son hedef: ${res.headers.location}` });
+              return;
+            }
+            fetchJsonWithKey(res.headers.location, apiKey, redirectSayisi + 1).then(resolve).catch(reject);
             return;
           }
-          fetchJsonWithKey(res.headers.location, apiKey, redirectSayisi + 1).then(resolve).catch(reject);
-          return;
+          let data = "";
+          res.on("data", (chunk) => (data += chunk));
+          res.on("end", () => {
+            try {
+              resolve({ statusCode: res.statusCode, body: JSON.parse(data), finalUrl: url });
+            } catch (e) {
+              resolve({ statusCode: res.statusCode, body: null, raw: data, finalUrl: url });
+            }
+          });
         }
-        let data = "";
-        res.on("data", (chunk) => (data += chunk));
-        res.on("end", () => {
-          try {
-            resolve({ statusCode: res.statusCode, body: JSON.parse(data), finalUrl: url });
-          } catch (e) {
-            resolve({ statusCode: res.statusCode, body: null, raw: data, finalUrl: url });
-          }
-        });
-      })
+      )
       .on("error", reject);
   });
 }
