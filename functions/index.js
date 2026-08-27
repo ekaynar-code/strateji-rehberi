@@ -261,7 +261,15 @@ function bugunTarihiEvdsFormati(gunOncesi = 0) {
 function sonGecerliDeger(items, alanAdi) {
   if (!Array.isArray(items)) return null;
   for (let i = items.length - 1; i >= 0; i--) {
-    const deger = items[i][alanAdi];
+    let deger = items[i][alanAdi];
+    // Formül uygulanmış seriler bazen farklı bir alan adıyla dönebiliyor —
+    // tam eşleşme yoksa, "Tarih"/"UNIXTIME" dışındaki ilk sayısal alanı kullan.
+    if (deger === null || deger === undefined || deger === "") {
+      const digerAlan = Object.entries(items[i]).find(
+        ([k, v]) => k !== "Tarih" && k !== "UNIXTIME" && v !== null && v !== undefined && v !== ""
+      );
+      deger = digerAlan ? digerAlan[1] : undefined;
+    }
     if (deger !== null && deger !== undefined && deger !== "") {
       return { tarih: items[i].Tarih, deger: parseFloat(deger) };
     }
@@ -269,12 +277,12 @@ function sonGecerliDeger(items, alanAdi) {
   return null;
 }
 
-async function evdsSeriGetir(apiKey, seriKodu, alanAdi) {
-  const baslangic = bugunTarihiEvdsFormati(20);
+async function evdsSeriGetir(apiKey, seriKodu, alanAdi, gunOncesi = 40, ekstraParam = "") {
+  const baslangic = bugunTarihiEvdsFormati(gunOncesi);
   const bitis = bugunTarihiEvdsFormati(0);
   const url = `https://evds3.tcmb.gov.tr/igmevdsms-dis/series=${encodeURIComponent(
     seriKodu
-  )}&startDate=${baslangic}&endDate=${bitis}&type=json`;
+  )}&startDate=${baslangic}&endDate=${bitis}&type=json${ekstraParam}`;
 
   const { statusCode, body, raw, finalUrl } = await fetchJsonWithKey(url, apiKey);
   if (statusCode !== 200 || !body || !Array.isArray(body.items)) {
@@ -363,8 +371,11 @@ exports.apiEkonomi = onRequest(
         evdsSeriGetir(evdsKey, "TP.APIFON4", "TP_APIFON4"),
         evdsSeriGetir(evdsKey, "TP.DK.USD.A.YTL", "TP_DK_USD_A_YTL"),
         evdsSeriGetir(evdsKey, "TP.DK.EUR.A.YTL", "TP_DK_EUR_A_YTL"),
-        evdsSeriGetir(evdsKey, "TP.FE.OKTG01", "TP_FE_OKTG01"),
-        evdsSeriGetir(evdsKey, "TP.DTP", "TP_DTP"),
+        // TÜFE genel endeks — yıllık yüzde değişim formülüyle (formulas=3) direkt
+        // "yıllık enflasyon %" değeri isteniyor, ham endeks puanı değil.
+        evdsSeriGetir(evdsKey, "TP.FG.J0", "TP_FG_J0", 60, "&formulas=3&frequency=5"),
+        // Dış ticaret dengesi aylık ve gecikmeli yayınlanır — daha geniş pencere.
+        evdsSeriGetir(evdsKey, "TP.DTP", "TP_DTP", 90),
       ]);
 
       const veri = {
