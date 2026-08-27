@@ -162,7 +162,7 @@ function TodoRow({ item }: { item: Todo }) {
   async function handleToggle() {
     setBusy(true);
     try {
-      await toggleTodo(item.id, !item.tamamlandi);
+      await toggleTodo(item.id, !item.tamamlandi, item.baslik);
     } finally {
       setBusy(false);
     }
@@ -171,7 +171,7 @@ function TodoRow({ item }: { item: Todo }) {
   async function handleDelete() {
     setBusy(true);
     try {
-      await deleteTodo(item.id);
+      await deleteTodo(item.id, item.baslik);
     } finally {
       setBusy(false);
     }
@@ -182,7 +182,7 @@ function TodoRow({ item }: { item: Todo }) {
     if (!yeniNot.trim()) return;
     setNotEkleniyor(true);
     try {
-      await todoNotuEkle(item.id, yeniNot.trim());
+      await todoNotuEkle(item.id, yeniNot.trim(), item.baslik);
       setYeniNot("");
     } finally {
       setNotEkleniyor(false);
@@ -231,6 +231,13 @@ function TodoRow({ item }: { item: Todo }) {
               {gecmis && " · süresi geçti"}
             </span>
           )}
+          {item.tamamlandi && item.tamamlayan ? (
+            <div className="text-[11px] text-gray-400">Tamamlayan: {item.tamamlayan}</div>
+          ) : (
+            item.sonDegistiren && (
+              <div className="text-[11px] text-gray-400">Son düzenleyen: {item.sonDegistiren}</div>
+            )
+          )}
         </div>
 
         <button
@@ -258,7 +265,10 @@ function TodoRow({ item }: { item: Todo }) {
           <div className="mb-2 flex flex-col gap-1">
             {notlar.map((n) => (
               <div key={n.id} className="flex items-start justify-between gap-2 text-xs">
-                <span className="text-gray-600">{n.metin}</span>
+                <span className="text-gray-600">
+                  {n.metin}
+                  {n.ekleyen && <span className="ml-1.5 text-gray-400">— {n.ekleyen}</span>}
+                </span>
                 <button
                   onClick={() => todoNotuSil(item.id, n.id)}
                   className="shrink-0 text-gray-300 hover:text-red-600"

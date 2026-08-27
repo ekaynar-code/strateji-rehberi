@@ -124,7 +124,7 @@ export default function MesajOlusturModal({
     setIsaretleniyor(true);
     try {
       const etiket = mesajTipiEtiketi(tip, dil);
-      await mesajGonderildiIsaretle(kayit.id, kayit.durum, etiket);
+      await mesajGonderildiIsaretle(kayit.id, kayit.durum, etiket, kayit.firmaAdi);
       await addTodo(
         `${kayit.firmaAdi} ile takip et — "${etiket}" mesajı gönderilmişti`,
         undefined,

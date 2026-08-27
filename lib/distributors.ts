@@ -11,6 +11,7 @@ import {
   Timestamp,
 } from "firebase/firestore";
 import { db } from "./firebase";
+import { logEkle, guncelKullaniciAdi } from "./degisiklikLog";
 
 export type Bolge = "korfez" | "balkanlar" | "afrika" | "turkiye";
 export type Profil = "uretici" | "insaat_firmasi" | "mimarlik_firmasi" | "araci_sirket";
@@ -40,6 +41,8 @@ export interface Distributor {
   zayifYonler?: string;
   sonMesajTarihi?: string; // YYYY-MM-DD, en son gönderilen mesajın tarihi
   sonMesajTipi?: string; // örn. "İlk temas", "Takip mesajı"
+  ekleyen?: string; // kaydı ilk oluşturan kullanıcı
+  sonDegistiren?: string; // en son değişikliği yapan kullanıcı
   createdAt?: Timestamp;
   updatedAt?: Timestamp;
 }
@@ -145,7 +148,7 @@ export function subscribeDistributors(
   );
 }
 
-export async function addDistributor(data: Omit<Distributor, "id" | "createdAt" | "updatedAt">) {
+export async function addDistributor(data: Omit<Distributor, "id" | "createdAt" | "updatedAt" | "ekleyen" | "sonDegistiren">) {
   // Firestore, alan değeri olarak `undefined` kabul etmez — boş/tanımsız
   // opsiyonel alanları objeden tamamen çıkarıyoruz.
   const temiz: Record<string, unknown> = {};
@@ -153,27 +156,42 @@ export async function addDistributor(data: Omit<Distributor, "id" | "createdAt" 
     if (value !== undefined) temiz[key] = value;
   });
 
+  const kullanici = guncelKullaniciAdi();
   await addDoc(collection(db, COLLECTION), {
     ...temiz,
+    ekleyen: kullanici,
+    sonDegistiren: kullanici,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
+  await logEkle("ekledi", "Satış Fırsatı", data.firmaAdi);
 }
 
-export async function updateDistributor(id: string, data: Partial<Omit<Distributor, "id">>) {
+export async function updateDistributor(id: string, data: Partial<Omit<Distributor, "id">>, mevcutFirmaAdi?: string) {
   const temiz: Record<string, unknown> = {};
   Object.entries(data).forEach(([key, value]) => {
     if (value !== undefined) temiz[key] = value;
   });
 
+  const kullanici = guncelKullaniciAdi();
   await updateDoc(doc(db, COLLECTION, id), {
     ...temiz,
+    sonDegistiren: kullanici,
     updatedAt: serverTimestamp(),
   });
+
+  // Durum değişikliği ayrı bir eylem olarak loglanır, diğer alan güncellemeleri
+  // genel "düzenledi" olarak loglanır.
+  if (data.durum) {
+    await logEkle("durumunu değiştirdi", "Satış Fırsatı", `${mevcutFirmaAdi || ""} → ${data.durum}`);
+  } else {
+    await logEkle("düzenledi", "Satış Fırsatı", mevcutFirmaAdi);
+  }
 }
 
-export async function deleteDistributor(id: string) {
+export async function deleteDistributor(id: string, firmaAdi?: string) {
   await deleteDoc(doc(db, COLLECTION, id));
+  await logEkle("sildi", "Satış Fırsatı", firmaAdi);
 }
 
 /**
@@ -184,7 +202,8 @@ export async function deleteDistributor(id: string) {
 export async function mesajGonderildiIsaretle(
   id: string,
   mevcutDurum: Durum,
-  mesajTipiEtiketi: string
+  mesajTipiEtiketi: string,
+  firmaAdi?: string
 ) {
   const bugun = new Date().toISOString().slice(0, 10);
   const guncelleme: Partial<Distributor> = {
@@ -198,7 +217,13 @@ export async function mesajGonderildiIsaretle(
     guncelleme.durum = "temas_edildi";
   }
 
-  await updateDistributor(id, guncelleme);
+  const kullanici = guncelKullaniciAdi();
+  await updateDoc(doc(db, COLLECTION, id), {
+    ...guncelleme,
+    sonDegistiren: kullanici,
+    updatedAt: serverTimestamp(),
+  });
+  await logEkle("mesaj gönderdi", "Satış Fırsatı", `${firmaAdi || ""} — ${mesajTipiEtiketi}`);
 }
 
 import { csvAyristir } from "./csv";

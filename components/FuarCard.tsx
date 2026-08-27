@@ -35,7 +35,7 @@ export default function FuarCard({ item }: { item: Fuar }) {
   async function handleDurumChange(yeniDurum: FuarDurum) {
     setBusy(true);
     try {
-      await updateFuar(item.id, { durum: yeniDurum });
+      await updateFuar(item.id, { durum: yeniDurum }, item.ad);
     } finally {
       setBusy(false);
     }
@@ -44,7 +44,7 @@ export default function FuarCard({ item }: { item: Fuar }) {
   async function handleDelete() {
     setBusy(true);
     try {
-      await deleteFuar(item.id);
+      await deleteFuar(item.id, item.ad);
     } finally {
       setBusy(false);
     }
@@ -94,6 +94,10 @@ export default function FuarCard({ item }: { item: Fuar }) {
       </div>
 
       {item.notlar && <p className="mt-2 text-sm text-gray-600">{item.notlar}</p>}
+
+      {item.sonDegistiren && (
+        <p className="mt-2 text-[11px] text-gray-400">Son düzenleyen: {item.sonDegistiren}</p>
+      )}
 
       <div className="mt-3 flex justify-end">
         {confirmDelete ? (

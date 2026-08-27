@@ -68,7 +68,7 @@ export default function DistributorCard({ item }: { item: Distributor }) {
         eposta: epostaGirisi.trim() || undefined,
         telefon: telefonGirisi.trim() || undefined,
         notlar: notlarGirisi.trim() || undefined,
-      });
+      }, item.firmaAdi);
       setBilgiDuzenleAcik(false);
     } finally {
       setBusy(false);
@@ -89,7 +89,7 @@ export default function DistributorCard({ item }: { item: Distributor }) {
   async function handleDurumChange(yeniDurum: Durum) {
     setBusy(true);
     try {
-      await updateDistributor(item.id, { durum: yeniDurum });
+      await updateDistributor(item.id, { durum: yeniDurum }, item.firmaAdi);
     } finally {
       setBusy(false);
     }
@@ -100,7 +100,7 @@ export default function DistributorCard({ item }: { item: Distributor }) {
     if (isNaN(sayi) || sayi <= 0) return;
     setBusy(true);
     try {
-      await updateDistributor(item.id, { tahminiCiro: sayi, tahminiCiroParaBirimi: paraBirimiGirisi });
+      await updateDistributor(item.id, { tahminiCiro: sayi, tahminiCiroParaBirimi: paraBirimiGirisi }, item.firmaAdi);
     } finally {
       setBusy(false);
     }
@@ -110,7 +110,7 @@ export default function DistributorCard({ item }: { item: Distributor }) {
     if (!kayipGirisi.trim()) return;
     setBusy(true);
     try {
-      await updateDistributor(item.id, { kayipSebebi: kayipGirisi.trim() });
+      await updateDistributor(item.id, { kayipSebebi: kayipGirisi.trim() }, item.firmaAdi);
     } finally {
       setBusy(false);
     }
@@ -124,7 +124,7 @@ export default function DistributorCard({ item }: { item: Distributor }) {
         fiyatPozisyonu: fiyatPozisyonuGirisi || undefined,
         gucluYonler: gucluYonlerGirisi.trim() || undefined,
         zayifYonler: zayifYonlerGirisi.trim() || undefined,
-      });
+      }, item.firmaAdi);
       setRakipFormAcik(false);
     } finally {
       setBusy(false);
@@ -134,7 +134,7 @@ export default function DistributorCard({ item }: { item: Distributor }) {
   async function handleDelete() {
     setBusy(true);
     try {
-      await deleteDistributor(item.id);
+      await deleteDistributor(item.id, item.firmaAdi);
     } finally {
       setBusy(false);
     }
@@ -463,6 +463,10 @@ export default function DistributorCard({ item }: { item: Distributor }) {
           </button>
         )}
       </div>
+
+      {item.sonDegistiren && (
+        <p className="mt-2 text-[11px] text-gray-400">Son düzenleyen: {item.sonDegistiren}</p>
+      )}
 
       {mesajModalAcik && (
         <MesajOlusturModal kayit={item} onKapat={() => setMesajModalAcik(false)} />

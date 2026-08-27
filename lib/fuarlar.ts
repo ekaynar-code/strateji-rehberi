@@ -11,6 +11,7 @@ import {
   Timestamp,
 } from "firebase/firestore";
 import { db } from "./firebase";
+import { logEkle, guncelKullaniciAdi } from "./degisiklikLog";
 
 export type FuarBolge = "korfez" | "balkanlar" | "afrika" | "yurt_ici" | "diger";
 export type FuarDurum = "izleniyor" | "katilim_planlandi" | "katilim_kesin" | "katilinmayacak" | "tamamlandi";
@@ -23,6 +24,7 @@ export interface Fuar {
   tarih: string; // YYYY-MM-DD formatında, etkinliğin başlangıç tarihi
   durum: FuarDurum;
   notlar?: string;
+  sonDegistiren?: string;
   createdAt?: Timestamp;
   updatedAt?: Timestamp;
 }
@@ -60,7 +62,7 @@ export function subscribeFuarlar(
   );
 }
 
-export async function addFuar(data: Omit<Fuar, "id" | "createdAt" | "updatedAt">) {
+export async function addFuar(data: Omit<Fuar, "id" | "createdAt" | "updatedAt" | "sonDegistiren">) {
   const temiz: Record<string, unknown> = {};
   Object.entries(data).forEach(([key, value]) => {
     if (value !== undefined) temiz[key] = value;
@@ -68,12 +70,14 @@ export async function addFuar(data: Omit<Fuar, "id" | "createdAt" | "updatedAt">
 
   await addDoc(collection(db, COLLECTION), {
     ...temiz,
+    sonDegistiren: guncelKullaniciAdi(),
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
+  await logEkle("ekledi", "Fuar", data.ad);
 }
 
-export async function updateFuar(id: string, data: Partial<Omit<Fuar, "id">>) {
+export async function updateFuar(id: string, data: Partial<Omit<Fuar, "id">>, mevcutAd?: string) {
   const temiz: Record<string, unknown> = {};
   Object.entries(data).forEach(([key, value]) => {
     if (value !== undefined) temiz[key] = value;
@@ -81,12 +85,20 @@ export async function updateFuar(id: string, data: Partial<Omit<Fuar, "id">>) {
 
   await updateDoc(doc(db, COLLECTION, id), {
     ...temiz,
+    sonDegistiren: guncelKullaniciAdi(),
     updatedAt: serverTimestamp(),
   });
+
+  if (data.durum) {
+    await logEkle("durumunu değiştirdi", "Fuar", `${mevcutAd || ""} → ${data.durum}`);
+  } else {
+    await logEkle("düzenledi", "Fuar", mevcutAd);
+  }
 }
 
-export async function deleteFuar(id: string) {
+export async function deleteFuar(id: string, ad?: string) {
   await deleteDoc(doc(db, COLLECTION, id));
+  await logEkle("sildi", "Fuar", ad);
 }
 
 import { csvAyristir } from "./csv";

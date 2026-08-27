@@ -11,12 +11,15 @@ import {
   Timestamp,
 } from "firebase/firestore";
 import { db } from "./firebase";
+import { logEkle, guncelKullaniciAdi } from "./degisiklikLog";
 
 export interface Todo {
   id: string;
   baslik: string;
   tamamlandi: boolean;
   ekleyen?: string;
+  sonDegistiren?: string;
+  tamamlayan?: string;
   sonTarih?: string; // YYYY-MM-DD formatında, opsiyonel deadline
   createdAt?: Timestamp;
   updatedAt?: Timestamp;
@@ -40,25 +43,33 @@ export function subscribeTodos(
 }
 
 export async function addTodo(baslik: string, ekleyen?: string, sonTarih?: string) {
+  const kullanici = guncelKullaniciAdi();
   await addDoc(collection(db, COLLECTION), {
     baslik,
     tamamlandi: false,
-    ...(ekleyen ? { ekleyen } : {}),
+    ekleyen: ekleyen || kullanici,
+    sonDegistiren: kullanici,
     ...(sonTarih ? { sonTarih } : {}),
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
+  await logEkle("ekledi", "Yapılacak", baslik);
 }
 
-export async function toggleTodo(id: string, tamamlandi: boolean) {
+export async function toggleTodo(id: string, tamamlandi: boolean, baslik?: string) {
+  const kullanici = guncelKullaniciAdi();
   await updateDoc(doc(db, COLLECTION, id), {
     tamamlandi,
+    sonDegistiren: kullanici,
+    ...(tamamlandi ? { tamamlayan: kullanici } : {}),
     updatedAt: serverTimestamp(),
   });
+  await logEkle(tamamlandi ? "tamamlandı olarak işaretledi" : "tekrar açtı", "Yapılacak", baslik);
 }
 
-export async function deleteTodo(id: string) {
+export async function deleteTodo(id: string, baslik?: string) {
   await deleteDoc(doc(db, COLLECTION, id));
+  await logEkle("sildi", "Yapılacak", baslik);
 }
 
 // --- Alt notlar (bir göreve bağlı, zaman damgalı küçük notlar) ---
@@ -66,6 +77,7 @@ export async function deleteTodo(id: string) {
 export interface TodoNotu {
   id: string;
   metin: string;
+  ekleyen?: string;
   createdAt?: Timestamp;
 }
 
@@ -89,11 +101,13 @@ export function subscribeTodoNotlari(
   );
 }
 
-export async function todoNotuEkle(todoId: string, metin: string) {
+export async function todoNotuEkle(todoId: string, metin: string, gorevBasligi?: string) {
   await addDoc(notlarKoleksiyonu(todoId), {
     metin,
+    ekleyen: guncelKullaniciAdi(),
     createdAt: serverTimestamp(),
   });
+  await logEkle("not ekledi", "Yapılacak", gorevBasligi);
 }
 
 export async function todoNotuSil(todoId: string, notId: string) {

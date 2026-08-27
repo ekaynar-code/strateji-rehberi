@@ -11,8 +11,11 @@ import {
   panelAyarlariKaydet,
   type PanelAyarlari,
 } from "@/lib/panelAyarlari";
+import { subscribeLoglar, type LogKaydi } from "@/lib/degisiklikLog";
+import { useAuth } from "@/lib/AuthContext";
 
 const HAREKETSIZLIK_SECENEKLERI = [5, 10, 15, 30, 60];
+const LOG_GORME_YETKISI_OLAN = "yonetim@pimetri.com";
 
 export default function AyarlarPage() {
   return (
@@ -25,8 +28,13 @@ export default function AyarlarPage() {
 }
 
 function AyarlarContent() {
+  const { user } = useAuth();
   const [ayarlar, setAyarlar] = useState<PanelAyarlari | null>(null);
   const [csvTuru, setCsvTuru] = useState<"firsat" | "fuar" | null>(null);
+  const [loglar, setLoglar] = useState<LogKaydi[]>([]);
+  const [loglarYuklendi, setLoglarYuklendi] = useState(false);
+
+  const logGormeYetkisiVar = user?.email === LOG_GORME_YETKISI_OLAN;
 
   useEffect(() => {
     const unsub = subscribePanelAyarlari(
@@ -35,6 +43,18 @@ function AyarlarContent() {
     );
     return () => unsub();
   }, []);
+
+  useEffect(() => {
+    if (!logGormeYetkisiVar) return;
+    const unsub = subscribeLoglar(
+      (l) => {
+        setLoglar(l);
+        setLoglarYuklendi(true);
+      },
+      () => setLoglarYuklendi(true)
+    );
+    return () => unsub();
+  }, [logGormeYetkisiVar]);
 
   async function handleHareketsizlikDegistir(dakika: number) {
     await panelAyarlariKaydet({ hareketsizlikSuresiDakika: dakika });
@@ -132,6 +152,41 @@ function AyarlarContent() {
         {csvTuru === "firsat" && <CsvIceAktarForm onDone={() => setCsvTuru(null)} />}
         {csvTuru === "fuar" && <FuarCsvIceAktarForm onDone={() => setCsvTuru(null)} />}
       </div>
+
+      {logGormeYetkisiVar && (
+        <div className="mt-5 rounded-xl border border-gray-200 bg-white p-4">
+          <h2 className="mb-1 text-sm font-medium text-gray-700">Değişiklik günlüğü</h2>
+          <p className="mb-3 text-xs text-gray-500">
+            Panelde yapılan son değişiklikler — sadece yönetim hesabı bu bölümü görebilir.
+          </p>
+
+          {!loglarYuklendi && <p className="text-sm text-gray-400">Yükleniyor…</p>}
+          {loglarYuklendi && loglar.length === 0 && (
+            <p className="text-sm text-gray-400">Henüz kayıtlı bir değişiklik yok.</p>
+          )}
+
+          <div className="flex max-h-96 flex-col gap-1.5 overflow-y-auto">
+            {loglar.map((log) => (
+              <div key={log.id} className="flex items-start justify-between gap-2 border-b border-gray-50 pb-1.5 text-xs">
+                <div>
+                  <span className="font-medium text-gray-800">{log.kullanici}</span>
+                  <span className="text-gray-500"> {log.eylem}</span>
+                  {log.detay && <span className="text-gray-400"> · {log.detay}</span>}
+                  <span className="ml-1 text-gray-300">({log.modul})</span>
+                </div>
+                <span className="shrink-0 text-gray-300">
+                  {log.createdAt?.toDate().toLocaleString("tr-TR", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </main>
   );
 }
