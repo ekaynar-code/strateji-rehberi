@@ -199,3 +199,162 @@ exports.musavirlikBultenGetir = onRequest(
     }
   }
 );
+
+// ---------------------------------------------------------------------------
+// Ekonomi Analizi — TCMB EVDS2 REST servisinden güncel ekonomik göstergeleri
+// çeker. Kişisel/eğitim amaçlı kullanım içindir. Belirli fon/hisse önermez,
+// sadece objektif piyasa verisi ve genel ekonomik ilişkileri özetler.
+// ---------------------------------------------------------------------------
+
+function fetchJsonWithKey(url, apiKey) {
+  return new Promise((resolve, reject) => {
+    https
+      .get(url, { headers: { key: apiKey } }, (res) => {
+        let data = "";
+        res.on("data", (chunk) => (data += chunk));
+        res.on("end", () => {
+          try {
+            resolve({ statusCode: res.statusCode, body: JSON.parse(data) });
+          } catch (e) {
+            resolve({ statusCode: res.statusCode, body: null, raw: data });
+          }
+        });
+      })
+      .on("error", reject);
+  });
+}
+
+function bugunTarihiEvdsFormati(gunOncesi = 0) {
+  const d = new Date();
+  d.setDate(d.getDate() - gunOncesi);
+  const gg = String(d.getDate()).padStart(2, "0");
+  const aa = String(d.getMonth() + 1).padStart(2, "0");
+  const yyyy = d.getFullYear();
+  return `${gg}-${aa}-${yyyy}`;
+}
+
+/**
+ * Bir EVDS serisinin son geçerli (null olmayan) gözlemini bulur — hafta
+ * sonu/tatil günlerinde veri boş gelebildiği için son 10 günü tarayıp ilk
+ * dolu değeri döner.
+ */
+function sonGecerliDeger(items, alanAdi) {
+  if (!Array.isArray(items)) return null;
+  for (let i = items.length - 1; i >= 0; i--) {
+    const deger = items[i][alanAdi];
+    if (deger !== null && deger !== undefined && deger !== "") {
+      return { tarih: items[i].Tarih, deger: parseFloat(deger) };
+    }
+  }
+  return null;
+}
+
+async function evdsSeriGetir(apiKey, seriKodu, alanAdi) {
+  const baslangic = bugunTarihiEvdsFormati(20);
+  const bitis = bugunTarihiEvdsFormati(0);
+  const url = `https://evds2.tcmb.gov.tr/service/evds/series=${encodeURIComponent(
+    seriKodu
+  )}&startDate=${baslangic}&endDate=${bitis}&type=json`;
+
+  const { statusCode, body } = await fetchJsonWithKey(url, apiKey);
+  if (statusCode !== 200 || !body || !Array.isArray(body.items)) {
+    return { hata: `EVDS isteği başarısız (${statusCode})` };
+  }
+  const sonuc = sonGecerliDeger(body.items, alanAdi);
+  if (!sonuc) return { hata: "Bu dönemde veri bulunamadı" };
+  return sonuc;
+}
+
+function objektifYorumUret(veri) {
+  const yorumlar = [];
+
+  const faiz = veri.politikaFaizi;
+  if (faiz && faiz.deger !== undefined) {
+    yorumlar.push(
+      `TCMB ağırlıklı ortalama fonlama maliyeti yaklaşık %${faiz.deger.toFixed(
+        2
+      )}. Yüksek faiz genellikle TL varlıkları görece cazip kılar ve ithalat maliyetlerini düşürücü yönde etki yapabilir; ihracat gelirlerinizin TL karşılığını ise baskılayabilir.`
+    );
+  }
+
+  const usd = veri.usdTry;
+  const eur = veri.eurTry;
+  if (usd && eur && usd.deger && eur.deger) {
+    yorumlar.push(
+      `USD/TRY ${usd.deger.toFixed(2)}, EUR/TRY ${eur.deger.toFixed(
+        2
+      )} seviyesinde. Kurlardaki değişim, döviz bazlı satışlarınızın TL karşılığını doğrudan etkiler.`
+    );
+  }
+
+  const enflasyon = veri.enflasyonYillik;
+  if (enflasyon && enflasyon.deger !== undefined) {
+    yorumlar.push(
+      `Yıllık TÜFE artışı yaklaşık %${enflasyon.deger.toFixed(
+        1
+      )}. Yüksek enflasyon, girdi/hammadde maliyetlerinizi ve fiyatlandırma stratejinizi doğrudan etkileyen bir faktördür.`
+    );
+  }
+
+  const disTicaret = veri.disTicaretDengesi;
+  if (disTicaret && disTicaret.deger !== undefined) {
+    const yon = disTicaret.deger < 0 ? "açık" : "fazla";
+    yorumlar.push(
+      `Dış ticaret dengesi ${yon} veriyor (yaklaşık ${Math.abs(disTicaret.deger).toLocaleString(
+        "tr-TR"
+      )} milyon USD). Bu, genel ihracat/ithalat trendinin yönü hakkında bir gösterge sunar.`
+    );
+  }
+
+  yorumlar.push(
+    "Not: Bu bölüm objektif piyasa verisi ve genel ekonomik ilişkileri özetler; kişiye özel yatırım tavsiyesi niteliği taşımaz."
+  );
+
+  return yorumlar;
+}
+
+/**
+ * HTTP endpoint: ?key=API_ANAHTARINIZ ile çağrılır. TCMB EVDS'den güncel
+ * politika faizi, USD/TRY, EUR/TRY, yıllık enflasyon ve dış ticaret dengesini
+ * çekip, objektif ekonomik yorumlarla birlikte döner.
+ */
+exports.apiEkonomi = onRequest(
+  { cors: true, region: "europe-west1", timeoutSeconds: 30, secrets: ["EKONOMI_API_KEY", "EVDS_API_KEY"] },
+  async (req, res) => {
+    const apiKey = process.env.EKONOMI_API_KEY;
+    if (!apiKey || req.query.key !== apiKey) {
+      res.status(401).json({ error: "Geçersiz API key" });
+      return;
+    }
+
+    const evdsKey = process.env.EVDS_API_KEY;
+    if (!evdsKey) {
+      res.status(500).json({ error: "EVDS_API_KEY tanımlı değil" });
+      return;
+    }
+
+    try {
+      const [politikaFaizi, usdTry, eurTry, enflasyonYillik, disTicaretDengesi] = await Promise.all([
+        evdsSeriGetir(evdsKey, "TP.APIFON4", "TP_APIFON4"),
+        evdsSeriGetir(evdsKey, "TP.DK.USD.A.YTL", "TP_DK_USD_A_YTL"),
+        evdsSeriGetir(evdsKey, "TP.DK.EUR.A.YTL", "TP_DK_EUR_A_YTL"),
+        evdsSeriGetir(evdsKey, "TP.FE.OKTG01", "TP_FE_OKTG01"),
+        evdsSeriGetir(evdsKey, "TP.DTP", "TP_DTP"),
+      ]);
+
+      const veri = {
+        politikaFaizi,
+        usdTry,
+        eurTry,
+        enflasyonYillik,
+        disTicaretDengesi,
+        guncelleme: new Date().toISOString(),
+      };
+      veri.yorumlar = objektifYorumUret(veri);
+
+      res.status(200).json(veri);
+    } catch (err) {
+      res.status(500).json({ error: "Ekonomi verileri alınamadı", detail: String(err) });
+    }
+  }
+);

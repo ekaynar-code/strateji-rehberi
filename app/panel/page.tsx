@@ -10,6 +10,7 @@ import ManuelCiroBolumu from "@/components/ManuelCiroBolumu";
 import AksiyonListesi from "@/components/AksiyonListesi";
 import CeoOzetBolumu from "@/components/CeoOzetBolumu";
 import UretimOzetBolumu from "@/components/UretimOzetBolumu";
+import EkonomiOzetBolumu from "@/components/EkonomiOzetBolumu";
 import {
   subscribeDistributors,
   type Distributor,
@@ -304,6 +305,8 @@ function GenelBakisContent() {
           <CeoOzetBolumu />
 
           <UretimOzetBolumu />
+
+          <EkonomiOzetBolumu />
 
           {/* Ciro hedefi (dönem bazlı) */}
           <div className="mb-6 rounded-xl border border-gray-200 bg-white p-4">

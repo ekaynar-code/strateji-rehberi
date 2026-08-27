@@ -1,0 +1,38 @@
+
+[1m[37m===[39m Deploying to 'strateji-rehberi'...[22m
+
+[36m[1mi [22m[39m deploying [1mfunctions[22m
+[36m[1mi  functions:[22m[39m preparing codebase [1mekonomi[22m for deployment
+[36m[1mi  functions:[22m[39m ensuring required API [1mcloudfunctions.googleapis.com[22m is enabled...
+[36m[1mi  functions:[22m[39m ensuring required API [1mcloudbuild.googleapis.com[22m is enabled...
+[36m[1mi  artifactregistry:[22m[39m ensuring required API [1martifactregistry.googleapis.com[22m is enabled...
+[36m[1mi  functions:[22m[39m Loading and analyzing source code for codebase ekonomi to determine what to deploy
+(node:1572) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+    at normalizeSpawnArguments (node:child_process:661:15)
+    at Object.spawn (node:child_process:806:13)
+    at spawn (C:\Users\ekayn\AppData\Roaming\npm\node_modules\firebase-tools\node_modules\cross-spawn\index.js:12:24)
+    at runWithVirtualEnv (C:\Users\ekayn\AppData\Roaming\npm\node_modules\firebase-tools\lib\functions\python.js:23:36)
+    at Delegate.modulesDir (C:\Users\ekayn\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\functions\runtimes\python\index.js:71:58)
+    at Delegate.serveAdmin (C:\Users\ekayn\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\functions\runtimes\python\index.js:116:39)
+    at Delegate.discoverBuild (C:\Users\ekayn\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\functions\runtimes\python\index.js:155:44)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async loadCodebases (C:\Users\ekayn\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\functions\prepare.js:525:33)
+    at async prepare (C:\Users\ekayn\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\functions\prepare.js:181:24)
+ * Serving Flask app 'serving'
+ * Debug mode: off
+
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:8081
+
+Press CTRL+C to quit
+
+127.0.0.1 - - [27/Aug/2026 10:55:46] "GET /__/functions.yaml HTTP/1.1" 200 -
+
+127.0.0.1 - - [27/Aug/2026 10:55:46] "GET /__/quitquitquit HTTP/1.1" 200 -
+
+
+[32m[1m+ [22m[39m [1m[4mDeploy complete![24m[22m
+
+[1mProject Console:[22m https://console.firebase.google.com/project/strateji-rehberi/overview
