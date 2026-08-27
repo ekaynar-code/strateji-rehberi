@@ -329,13 +329,13 @@ function objektifYorumUret(veri) {
     );
   }
 
-  const disTicaret = veri.disTicaretDengesi;
-  if (disTicaret && disTicaret.deger !== undefined) {
-    const yon = disTicaret.deger < 0 ? "açık" : "fazla";
+  const ihracat = veri.ihracatHacmiEndeksi;
+  if (ihracat && ihracat.deger !== undefined) {
+    const yon = ihracat.deger >= 0 ? "arttı" : "azaldı";
     yorumlar.push(
-      `Dış ticaret dengesi ${yon} veriyor (yaklaşık ${Math.abs(disTicaret.deger).toLocaleString(
-        "tr-TR"
-      )} milyon USD). Bu, genel ihracat/ithalat trendinin yönü hakkında bir gösterge sunar.`
+      `Türkiye'nin ihracat hacmi geçen yılın aynı dönemine göre yaklaşık %${Math.abs(
+        ihracat.deger
+      ).toFixed(1)} ${yon}. Bu, genel ihracat talebindeki yönü gösteren bir gösterge olarak değerlendirilebilir.`
     );
   }
 
@@ -367,15 +367,19 @@ exports.apiEkonomi = onRequest(
     }
 
     try {
-      const [politikaFaizi, usdTry, eurTry, enflasyonYillik, disTicaretDengesi] = await Promise.all([
+      const [politikaFaizi, usdTry, eurTry, enflasyonYillik, ihracatHacmiEndeksi] = await Promise.all([
         evdsSeriGetir(evdsKey, "TP.APIFON4", "TP_APIFON4"),
         evdsSeriGetir(evdsKey, "TP.DK.USD.A.YTL", "TP_DK_USD_A_YTL"),
         evdsSeriGetir(evdsKey, "TP.DK.EUR.A.YTL", "TP_DK_EUR_A_YTL"),
-        // TÜFE genel endeks — yıllık yüzde değişim formülüyle (formulas=3) direkt
-        // "yıllık enflasyon %" değeri isteniyor, ham endeks puanı değil.
-        evdsSeriGetir(evdsKey, "TP.FG.J0", "TP_FG_J0", 60, "&formulas=3&frequency=5"),
-        // Dış ticaret dengesi aylık ve gecikmeli yayınlanır — daha geniş pencere.
-        evdsSeriGetir(evdsKey, "TP.DTP", "TP_DTP", 90),
+        // TÜFE (2025=100 yeni baz yıllı endeks) — yıllık yüzde değişim
+        // formülüyle (formulas=3, aylık frekans) direkt "yıllık enflasyon %"
+        // değeri isteniyor. Formül hesaplaması için en az 12+ aylık geçmiş
+        // veri görmesi gerektiğinden geniş bir pencere kullanıyoruz.
+        evdsSeriGetir(evdsKey, "TP.TUKFIY2025.GENEL", "TP_TUKFIY2025_GENEL", 400, "&formulas=3&frequency=5"),
+        // İhracat Miktar Endeksi (2010=100) — Türkiye'nin toplam ihracat
+        // hacminin yıllık değişimi. Aylık ve gecikmeli yayınlandığı için
+        // geniş bir pencere ve yıllık % değişim formülü kullanıyoruz.
+        evdsSeriGetir(evdsKey, "TP.DT.IH.MIK.D01.2010", "TP_DT_IH_MIK_D01_2010", 400, "&formulas=3&frequency=5"),
       ]);
 
       const veri = {
@@ -383,7 +387,7 @@ exports.apiEkonomi = onRequest(
         usdTry,
         eurTry,
         enflasyonYillik,
-        disTicaretDengesi,
+        ihracatHacmiEndeksi,
         guncelleme: new Date().toISOString(),
       };
       veri.yorumlar = objektifYorumUret(veri);

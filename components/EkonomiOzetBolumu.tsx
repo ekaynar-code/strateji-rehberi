@@ -98,10 +98,10 @@ export default function EkonomiOzetBolumu() {
               </div>
             </div>
             <div>
-              <div className="text-xs text-gray-500">Dış ticaret dengesi</div>
+              <div className="text-xs text-gray-500">İhracat hacmi (yıllık değ.)</div>
               <div className="text-lg font-medium text-gray-900">
-                {veri.disTicaretDengesi.deger !== undefined
-                  ? `${sayiGoster(veri.disTicaretDengesi, "", 0)} M$`
+                {veri.ihracatHacmiEndeksi.deger !== undefined
+                  ? `${veri.ihracatHacmiEndeksi.deger >= 0 ? "+" : ""}%${veri.ihracatHacmiEndeksi.deger.toFixed(1)}`
                   : "—"}
               </div>
             </div>

@@ -19,7 +19,7 @@ export interface EkonomiVeri {
   usdTry: EkonomiGosterge;
   eurTry: EkonomiGosterge;
   enflasyonYillik: EkonomiGosterge;
-  disTicaretDengesi: EkonomiGosterge;
+  ihracatHacmiEndeksi: EkonomiGosterge;
   yorumlar: string[];
   guncelleme: string;
 }
