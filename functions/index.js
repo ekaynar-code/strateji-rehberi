@@ -206,22 +206,26 @@ exports.musavirlikBultenGetir = onRequest(
 // sadece objektif piyasa verisi ve genel ekonomik ilişkileri özetler.
 // ---------------------------------------------------------------------------
 
-function fetchJsonWithKey(url, apiKey) {
+function fetchJsonWithKey(url, apiKey, redirectSayisi = 0) {
   return new Promise((resolve, reject) => {
     https
       .get(url, { headers: { key: apiKey } }, (res) => {
         // TCMB EVDS bazen yönlendirme (302) döner — bunu takip ediyoruz.
         if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-          fetchJsonWithKey(res.headers.location, apiKey).then(resolve).catch(reject);
+          if (redirectSayisi >= 5) {
+            resolve({ statusCode: res.statusCode, body: null, raw: `Çok fazla yönlendirme, son hedef: ${res.headers.location}` });
+            return;
+          }
+          fetchJsonWithKey(res.headers.location, apiKey, redirectSayisi + 1).then(resolve).catch(reject);
           return;
         }
         let data = "";
         res.on("data", (chunk) => (data += chunk));
         res.on("end", () => {
           try {
-            resolve({ statusCode: res.statusCode, body: JSON.parse(data) });
+            resolve({ statusCode: res.statusCode, body: JSON.parse(data), finalUrl: url });
           } catch (e) {
-            resolve({ statusCode: res.statusCode, body: null, raw: data });
+            resolve({ statusCode: res.statusCode, body: null, raw: data, finalUrl: url });
           }
         });
       })
@@ -261,9 +265,14 @@ async function evdsSeriGetir(apiKey, seriKodu, alanAdi) {
     seriKodu
   )}&startDate=${baslangic}&endDate=${bitis}&type=json`;
 
-  const { statusCode, body, raw } = await fetchJsonWithKey(url, apiKey);
+  const { statusCode, body, raw, finalUrl } = await fetchJsonWithKey(url, apiKey);
   if (statusCode !== 200 || !body || !Array.isArray(body.items)) {
-    return { hata: `EVDS isteği başarısız (${statusCode})`, detay: raw ? String(raw).slice(0, 200) : undefined };
+    return {
+      hata: `EVDS isteği başarısız (${statusCode})`,
+      detay: raw ? String(raw).slice(0, 200) : undefined,
+      finalUrl,
+      istekUrl: url,
+    };
   }
   const sonuc = sonGecerliDeger(body.items, alanAdi);
   if (!sonuc) return { hata: "Bu dönemde veri bulunamadı" };

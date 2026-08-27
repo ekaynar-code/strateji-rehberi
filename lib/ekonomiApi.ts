@@ -10,6 +10,8 @@ export interface EkonomiGosterge {
   deger?: number;
   hata?: string;
   detay?: string;
+  finalUrl?: string;
+  istekUrl?: string;
 }
 
 export interface EkonomiVeri {
