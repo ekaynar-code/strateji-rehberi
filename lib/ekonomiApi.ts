@@ -9,6 +9,7 @@ export interface EkonomiGosterge {
   tarih?: string;
   deger?: number;
   hata?: string;
+  detay?: string;
 }
 
 export interface EkonomiVeri {
