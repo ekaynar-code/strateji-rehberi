@@ -2,6 +2,7 @@ import {
   doc,
   getDoc,
   setDoc,
+  deleteDoc,
   onSnapshot,
   collection,
   query,
@@ -131,6 +132,11 @@ export async function kullaniciYetkileriniKaydet(email: string, moduller: ModulA
     { moduller, onaylandi: true },
     { merge: true }
   );
+}
+
+export async function kullaniciYetkiKaydiniSil(email: string) {
+  const id = belgeIdUret(email);
+  await deleteDoc(doc(db, COLLECTION, id));
 }
 
 export async function kullaniciGenelBakisBolumleriniKaydet(

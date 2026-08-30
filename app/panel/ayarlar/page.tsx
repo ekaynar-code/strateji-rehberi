@@ -17,6 +17,7 @@ import {
   subscribeTumKullanicilar,
   kullaniciYetkileriniKaydet,
   kullaniciGenelBakisBolumleriniKaydet,
+  kullaniciYetkiKaydiniSil,
   MODUL_LISTESI,
   MODUL_LABEL,
   GENEL_BAKIS_BOLUMU_LISTESI,
@@ -48,6 +49,7 @@ function AyarlarContent() {
   const [loglarYuklendi, setLoglarYuklendi] = useState(false);
   const [kullanicilar, setKullanicilar] = useState<KullaniciYetkisi[]>([]);
   const [kullanicilarYuklendi, setKullanicilarYuklendi] = useState(false);
+  const [silmeOnayi, setSilmeOnayi] = useState<string | null>(null);
 
   const logGormeYetkisiVar = user?.email === LOG_GORME_YETKISI_OLAN;
   const yonetimMi = user?.email === YONETIM_EMAIL;
@@ -100,6 +102,11 @@ function AyarlarContent() {
       ? mevcutBolumler.filter((b) => b !== bolum)
       : [...mevcutBolumler, bolum];
     await kullaniciGenelBakisBolumleriniKaydet(email, yeniBolumler);
+  }
+
+  async function handleKullaniciSil(email: string) {
+    await kullaniciYetkiKaydiniSil(email);
+    setSilmeOnayi(null);
   }
 
   async function handleHareketsizlikDegistir(dakika: number) {
@@ -204,7 +211,9 @@ function AyarlarContent() {
           <h2 className="mb-1 text-sm font-medium text-gray-700">Kullanıcı yetkileri</h2>
           <p className="mb-3 text-xs text-gray-500">
             Yeni bir kullanıcı ilk giriş yaptığında hiçbir modüle erişimi olmaz. Aşağıdan
-            hangi modülleri görebileceklerini işaretleyin.
+            hangi modülleri görebileceklerini işaretleyin. &quot;Yetki kaydını sil&quot;
+            sadece panel içindeki kaydı siler, Firebase&apos;deki giriş hesabını etkilemez
+            (kullanıcı tekrar giriş yaparsa en kısıtlı halde yeniden listelenir).
           </p>
 
           {!kullanicilarYuklendi && <p className="text-sm text-gray-400">Yükleniyor…</p>}
@@ -217,13 +226,39 @@ function AyarlarContent() {
               .filter((k) => k.email !== YONETIM_EMAIL)
               .map((k) => (
                 <div key={k.email} className="rounded-lg border border-gray-200 p-3">
-                  <div className="mb-2 flex items-center gap-2">
-                    <span className="text-sm font-medium text-gray-900">{k.kullaniciAdi}</span>
-                    <span className="text-xs text-gray-400">{k.email}</span>
-                    {!k.onaylandi && (
-                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-700">
-                        Onay bekliyor
-                      </span>
+                  <div className="mb-2 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-gray-900">{k.kullaniciAdi}</span>
+                      <span className="text-xs text-gray-400">{k.email}</span>
+                      {!k.onaylandi && (
+                        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-700">
+                          Onay bekliyor
+                        </span>
+                      )}
+                    </div>
+                    {silmeOnayi === k.email ? (
+                      <div className="flex shrink-0 items-center gap-2 text-xs">
+                        <span className="text-gray-500">Silinsin mi?</span>
+                        <button
+                          onClick={() => handleKullaniciSil(k.email)}
+                          className="font-medium text-red-600 hover:underline"
+                        >
+                          Evet, sil
+                        </button>
+                        <button
+                          onClick={() => setSilmeOnayi(null)}
+                          className="text-gray-500 hover:underline"
+                        >
+                          Vazgeç
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setSilmeOnayi(k.email)}
+                        className="shrink-0 text-xs text-gray-400 hover:text-red-600"
+                      >
+                        Yetki kaydını sil
+                      </button>
                     )}
                   </div>
                   <div className="flex flex-wrap gap-1.5">

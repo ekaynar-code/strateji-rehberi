@@ -61,6 +61,7 @@ service cloud.firestore {
       allow read: if request.auth != null;
       allow create: if request.auth != null;
       allow update: if request.auth != null && request.auth.token.email == "yonetim@pimetri.com";
+      allow delete: if request.auth != null && request.auth.token.email == "yonetim@pimetri.com";
     }
 
     // Başka bir koleksiyona (örn. ihaleler) izin verilmedi —
