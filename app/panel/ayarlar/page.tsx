@@ -16,11 +16,15 @@ import { useAuth } from "@/lib/AuthContext";
 import {
   subscribeTumKullanicilar,
   kullaniciYetkileriniKaydet,
+  kullaniciGenelBakisBolumleriniKaydet,
   MODUL_LISTESI,
   MODUL_LABEL,
+  GENEL_BAKIS_BOLUMU_LISTESI,
+  GENEL_BAKIS_BOLUMU_LABEL,
   YONETIM_EMAIL,
   type KullaniciYetkisi,
   type ModulAdi,
+  type GenelBakisBolumu,
 } from "@/lib/kullaniciYetkileri";
 
 const HAREKETSIZLIK_SECENEKLERI = [5, 10, 15, 30, 60];
@@ -85,6 +89,17 @@ function AyarlarContent() {
       ? mevcutModuller.filter((m) => m !== modul)
       : [...mevcutModuller, modul];
     await kullaniciYetkileriniKaydet(email, yeniModuller);
+  }
+
+  async function handleGenelBakisBolumuToggle(
+    email: string,
+    mevcutBolumler: GenelBakisBolumu[],
+    bolum: GenelBakisBolumu
+  ) {
+    const yeniBolumler = mevcutBolumler.includes(bolum)
+      ? mevcutBolumler.filter((b) => b !== bolum)
+      : [...mevcutBolumler, bolum];
+    await kullaniciGenelBakisBolumleriniKaydet(email, yeniBolumler);
   }
 
   async function handleHareketsizlikDegistir(dakika: number) {
@@ -229,6 +244,34 @@ function AyarlarContent() {
                       );
                     })}
                   </div>
+
+                  {k.moduller.includes("genel_bakis") && (
+                    <div className="mt-2 border-t border-gray-100 pt-2">
+                      <p className="mb-1.5 text-[11px] text-gray-400">
+                        Genel Bakış içinde görünecek bölümler:
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {GENEL_BAKIS_BOLUMU_LISTESI.map((bolum) => {
+                          const acik = k.genelBakisBolumleri.includes(bolum);
+                          return (
+                            <button
+                              key={bolum}
+                              onClick={() =>
+                                handleGenelBakisBolumuToggle(k.email, k.genelBakisBolumleri, bolum)
+                              }
+                              className={`rounded-full px-2.5 py-1 text-xs font-medium transition ${
+                                acik
+                                  ? "bg-gray-700 text-white"
+                                  : "border border-gray-300 text-gray-400 hover:bg-gray-50"
+                              }`}
+                            >
+                              {GENEL_BAKIS_BOLUMU_LABEL[bolum]}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
           </div>

@@ -27,10 +27,31 @@ export const MODUL_LABEL: Record<ModulAdi, string> = {
   yapilacaklar: "Yapılacaklar",
 };
 
+// Genel Bakış sayfasındaki alt bölümler — modül bazlı yetkiden ayrı olarak,
+// her biri tek tek gizlenip gösterilebilir.
+export const GENEL_BAKIS_BOLUMU_LISTESI = [
+  "ciro_hedefi",
+  "personel_durumu",
+  "siparis_uretim",
+  "ekonomi_analizi",
+  "aksiyon_listesi",
+] as const;
+
+export type GenelBakisBolumu = (typeof GENEL_BAKIS_BOLUMU_LISTESI)[number];
+
+export const GENEL_BAKIS_BOLUMU_LABEL: Record<GenelBakisBolumu, string> = {
+  ciro_hedefi: "Ciro Hedefi",
+  personel_durumu: "Personel Durumu",
+  siparis_uretim: "Sipariş/Üretim Durumu",
+  ekonomi_analizi: "Ekonomi Analizi",
+  aksiyon_listesi: "Aksiyon Listesi",
+};
+
 export interface KullaniciYetkisi {
   email: string;
   kullaniciAdi: string;
   moduller: ModulAdi[];
+  genelBakisBolumleri: GenelBakisBolumu[]; // Genel Bakış modülü içindeki görünür alt bölümler
   onaylandi: boolean;
   ilkGiris?: string;
 }
@@ -51,6 +72,7 @@ export async function kullaniciKaydiniGarantiEt(email: string) {
     email,
     kullaniciAdi: email.split("@")[0],
     moduller: [],
+    genelBakisBolumleri: [],
     onaylandi: false,
     ilkGiris: new Date().toISOString(),
   });
@@ -69,7 +91,12 @@ export function subscribeKullaniciYetkisi(
         callback(null);
         return;
       }
-      callback(snap.data() as KullaniciYetkisi);
+      const data = snap.data();
+      callback({
+        ...(data as KullaniciYetkisi),
+        moduller: data.moduller || [],
+        genelBakisBolumleri: data.genelBakisBolumleri || [],
+      });
     },
     (err) => onError(err as Error)
   );
@@ -83,7 +110,14 @@ export function subscribeTumKullanicilar(
   return onSnapshot(
     q,
     (snapshot) => {
-      const items = snapshot.docs.map((d) => d.data() as KullaniciYetkisi);
+      const items = snapshot.docs.map((d) => {
+        const data = d.data();
+        return {
+          ...(data as KullaniciYetkisi),
+          moduller: data.moduller || [],
+          genelBakisBolumleri: data.genelBakisBolumleri || [],
+        };
+      });
       callback(items);
     },
     (err) => onError(err as Error)
@@ -99,6 +133,18 @@ export async function kullaniciYetkileriniKaydet(email: string, moduller: ModulA
   );
 }
 
+export async function kullaniciGenelBakisBolumleriniKaydet(
+  email: string,
+  bolumler: GenelBakisBolumu[]
+) {
+  const id = belgeIdUret(email);
+  await setDoc(
+    doc(db, COLLECTION, id),
+    { genelBakisBolumleri: bolumler, onaylandi: true },
+    { merge: true }
+  );
+}
+
 export const YONETIM_EMAIL = "yonetim@pimetri.com";
 
 export function moduleErisimiVarMi(
@@ -109,4 +155,14 @@ export function moduleErisimiVarMi(
   if (kullaniciEmail === YONETIM_EMAIL) return true;
   if (!yetki) return false;
   return yetki.moduller.includes(modul);
+}
+
+export function genelBakisBolumuErisimiVarMi(
+  yetki: KullaniciYetkisi | null,
+  bolum: GenelBakisBolumu,
+  kullaniciEmail: string | null | undefined
+): boolean {
+  if (kullaniciEmail === YONETIM_EMAIL) return true;
+  if (!yetki) return false;
+  return yetki.genelBakisBolumleri.includes(bolum);
 }

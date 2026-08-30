@@ -29,6 +29,9 @@ import { subscribeTodos, todoKalanGun, type Todo } from "@/lib/todos";
 import { subscribeHedef, hedefKaydet, type Hedef } from "@/lib/hedefler";
 import { kurlariGetir, tryyeCevir, type KurVeri } from "@/lib/kurlar";
 import { uretimApiBagliMi, uretimOzetGetir, type UretimOzet } from "@/lib/uretimApi";
+import { useAuth } from "@/lib/AuthContext";
+import { useKullaniciYetkisi } from "@/lib/useKullaniciYetkisi";
+import { genelBakisBolumuErisimiVarMi } from "@/lib/kullaniciYetkileri";
 import { yeniSiparisleriCiroyaEkle } from "@/lib/siparisOtomasyon";
 import {
   subscribeManuelCiro,
@@ -57,6 +60,10 @@ function formatTarih(tarih: string): string {
 
 function GenelBakisContent() {
   const router = useRouter();
+  const { user } = useAuth();
+  const yetki = useKullaniciYetkisi();
+  const bolumGorunurMu = (bolum: Parameters<typeof genelBakisBolumuErisimiVarMi>[1]) =>
+    genelBakisBolumuErisimiVarMi(yetki, bolum, user?.email);
   const [distributorler, setDistributorler] = useState<Distributor[]>([]);
   const [fuarlar, setFuarlar] = useState<Fuar[]>([]);
   const [todos, setTodos] = useState<Todo[]>([]);
@@ -303,15 +310,16 @@ function GenelBakisContent() {
         <p className="text-sm text-gray-500">Yükleniyor…</p>
       ) : (
         <>
-          <AksiyonListesi oneriler={aksiyonOnerileri} />
+          {bolumGorunurMu("aksiyon_listesi") && <AksiyonListesi oneriler={aksiyonOnerileri} />}
 
-          <CeoOzetBolumu />
+          {bolumGorunurMu("personel_durumu") && <CeoOzetBolumu />}
 
-          <UretimOzetBolumu />
+          {bolumGorunurMu("siparis_uretim") && <UretimOzetBolumu />}
 
-          <EkonomiOzetBolumu />
+          {bolumGorunurMu("ekonomi_analizi") && <EkonomiOzetBolumu />}
 
           {/* Ciro hedefi (dönem bazlı) */}
+          {bolumGorunurMu("ciro_hedefi") && (
           <div className="mb-6 rounded-xl border border-gray-200 bg-white p-4">
             <div className="mb-2 flex items-center justify-between">
               <span className="text-sm font-medium text-gray-700">
@@ -421,6 +429,7 @@ function GenelBakisContent() {
               </p>
             )}
           </div>
+          )}
 
           {/* KPI kartları */}
           <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
