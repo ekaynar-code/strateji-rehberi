@@ -13,6 +13,15 @@ import {
 } from "@/lib/panelAyarlari";
 import { subscribeLoglar, type LogKaydi } from "@/lib/degisiklikLog";
 import { useAuth } from "@/lib/AuthContext";
+import {
+  subscribeTumKullanicilar,
+  kullaniciYetkileriniKaydet,
+  MODUL_LISTESI,
+  MODUL_LABEL,
+  YONETIM_EMAIL,
+  type KullaniciYetkisi,
+  type ModulAdi,
+} from "@/lib/kullaniciYetkileri";
 
 const HAREKETSIZLIK_SECENEKLERI = [5, 10, 15, 30, 60];
 const LOG_GORME_YETKISI_OLAN = "yonetim@pimetri.com";
@@ -33,8 +42,11 @@ function AyarlarContent() {
   const [csvTuru, setCsvTuru] = useState<"firsat" | "fuar" | null>(null);
   const [loglar, setLoglar] = useState<LogKaydi[]>([]);
   const [loglarYuklendi, setLoglarYuklendi] = useState(false);
+  const [kullanicilar, setKullanicilar] = useState<KullaniciYetkisi[]>([]);
+  const [kullanicilarYuklendi, setKullanicilarYuklendi] = useState(false);
 
   const logGormeYetkisiVar = user?.email === LOG_GORME_YETKISI_OLAN;
+  const yonetimMi = user?.email === YONETIM_EMAIL;
 
   useEffect(() => {
     const unsub = subscribePanelAyarlari(
@@ -55,6 +67,25 @@ function AyarlarContent() {
     );
     return () => unsub();
   }, [logGormeYetkisiVar]);
+
+  useEffect(() => {
+    if (!yonetimMi) return;
+    const unsub = subscribeTumKullanicilar(
+      (k) => {
+        setKullanicilar(k);
+        setKullanicilarYuklendi(true);
+      },
+      () => setKullanicilarYuklendi(true)
+    );
+    return () => unsub();
+  }, [yonetimMi]);
+
+  async function handleModulToggle(email: string, mevcutModuller: ModulAdi[], modul: ModulAdi) {
+    const yeniModuller = mevcutModuller.includes(modul)
+      ? mevcutModuller.filter((m) => m !== modul)
+      : [...mevcutModuller, modul];
+    await kullaniciYetkileriniKaydet(email, yeniModuller);
+  }
 
   async function handleHareketsizlikDegistir(dakika: number) {
     await panelAyarlariKaydet({ hareketsizlikSuresiDakika: dakika });
@@ -152,6 +183,57 @@ function AyarlarContent() {
         {csvTuru === "firsat" && <CsvIceAktarForm onDone={() => setCsvTuru(null)} />}
         {csvTuru === "fuar" && <FuarCsvIceAktarForm onDone={() => setCsvTuru(null)} />}
       </div>
+
+      {yonetimMi && (
+        <div className="mt-5 rounded-xl border border-gray-200 bg-white p-4">
+          <h2 className="mb-1 text-sm font-medium text-gray-700">Kullanıcı yetkileri</h2>
+          <p className="mb-3 text-xs text-gray-500">
+            Yeni bir kullanıcı ilk giriş yaptığında hiçbir modüle erişimi olmaz. Aşağıdan
+            hangi modülleri görebileceklerini işaretleyin.
+          </p>
+
+          {!kullanicilarYuklendi && <p className="text-sm text-gray-400">Yükleniyor…</p>}
+          {kullanicilarYuklendi && kullanicilar.length === 0 && (
+            <p className="text-sm text-gray-400">Henüz giriş yapan başka kullanıcı yok.</p>
+          )}
+
+          <div className="flex flex-col gap-3">
+            {kullanicilar
+              .filter((k) => k.email !== YONETIM_EMAIL)
+              .map((k) => (
+                <div key={k.email} className="rounded-lg border border-gray-200 p-3">
+                  <div className="mb-2 flex items-center gap-2">
+                    <span className="text-sm font-medium text-gray-900">{k.kullaniciAdi}</span>
+                    <span className="text-xs text-gray-400">{k.email}</span>
+                    {!k.onaylandi && (
+                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-700">
+                        Onay bekliyor
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {MODUL_LISTESI.map((modul) => {
+                      const acik = k.moduller.includes(modul);
+                      return (
+                        <button
+                          key={modul}
+                          onClick={() => handleModulToggle(k.email, k.moduller, modul)}
+                          className={`rounded-full px-2.5 py-1 text-xs font-medium transition ${
+                            acik
+                              ? "bg-brand-400 text-white"
+                              : "border border-gray-300 text-gray-500 hover:bg-gray-50"
+                          }`}
+                        >
+                          {MODUL_LABEL[modul]}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+          </div>
+        </div>
+      )}
 
       {logGormeYetkisiVar && (
         <div className="mt-5 rounded-xl border border-gray-200 bg-white p-4">

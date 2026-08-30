@@ -16,14 +16,27 @@ function tarihDonemIcindeMi(tarih: string, hedef: Hedef): boolean {
  * uretimfinal API'sinden gelen aktif sipariş listesini kontrol eder. Daha
  * önce manuel ciro kaydına eklenmemiş (kaynakSiparisNo ile işaretlenmemiş)
  * ve aktif hedef döneminin içine düşen yeni siparişleri otomatik olarak
- * ekler. Sipariş tutarı API'de yoksa, tutar bilgisi gelene kadar bu
- * siparişleri atlar — yanlış rakamla ciroyu şişirmemek için.
+ * ekler.
+ *
+ * ÖNEMLİ — Para birimi: uretimfinal API'sinin apiOzet yanıtında sipariş
+ * tutarının hangi para biriminde (TRY/USD/EUR) olduğunu belirten bir alan
+ * yok. Yanlış para biriminde ciroya ekleme yapıp hedefi kur farkı kadar
+ * (örn. USD tutarını TRY sanıp ~48 kat) yanlış şişirmemek için, bu otomasyon
+ * PARA_BIRIMI_DOGRULANDI false olduğu sürece devre dışıdır. API tarafında
+ * gerçek para birimi netleştirilip bu sabit true yapılana ve/veya API'ye
+ * para_birimi alanı eklenene kadar hiçbir otomatik ekleme yapılmaz.
  */
+const PARA_BIRIMI_DOGRULANDI = false;
+
 export async function yeniSiparisleriCiroyaEkle(
   ozet: UretimOzet,
   hedef: Hedef | null
 ): Promise<{ eklenen: number; atlananTutarsiz: number }> {
   if (!hedef) return { eklenen: 0, atlananTutarsiz: 0 };
+
+  if (!PARA_BIRIMI_DOGRULANDI) {
+    return { eklenen: 0, atlananTutarsiz: 0 };
+  }
 
   // API şu an sipariş bazlı liste döndürmüyorsa (sadece özet sayılar
   // geliyorsa), otomatik ekleme yapacak bir şey yok — sessizce çık.
@@ -57,10 +70,14 @@ export async function yeniSiparisleriCiroyaEkle(
       continue;
     }
 
+    // Para birimi API'den gelmiyorsa güvenli tarafta kalıp TRY varsayıyoruz,
+    // ama normalde her siparişte bu alan dolu gelmeli.
+    const paraBirimi = siparis.para_birimi || "TRY";
+
     const bugun = new Date().toISOString().slice(0, 10);
     await manuelCiroEkle(
       siparisTutari,
-      "TRY",
+      paraBirimi,
       `Sipariş: ${siparis.musteri}`,
       siparis.teslim && siparis.teslim !== "-" ? siparis.teslim : bugun,
       siparis.siparis_no

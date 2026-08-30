@@ -3,13 +3,16 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/lib/AuthContext";
+import { useKullaniciYetkisi } from "@/lib/useKullaniciYetkisi";
+import { moduleErisimiVarMi, type ModulAdi } from "@/lib/kullaniciYetkileri";
 
-const SEKMELER = [
-  { href: "/panel", label: "Genel Bakış" },
-  { href: "/panel/distributorler", label: "Satış Fırsatları" },
-  { href: "/panel/fuarlar", label: "Fuarlar" },
-  { href: "/panel/piyasa-nabzi", label: "Piyasa Nabzı" },
-  { href: "/panel/yapilacaklar", label: "Yapılacaklar" },
+const SEKMELER: { href: string; label: string; modul: ModulAdi }[] = [
+  { href: "/panel", label: "Genel Bakış", modul: "genel_bakis" },
+  { href: "/panel/distributorler", label: "Satış Fırsatları", modul: "satis_firsatlari" },
+  { href: "/panel/fuarlar", label: "Fuarlar", modul: "fuarlar" },
+  { href: "/panel/piyasa-nabzi", label: "Piyasa Nabzı", modul: "piyasa_nabzi" },
+  { href: "/panel/yapilacaklar", label: "Yapılacaklar", modul: "yapilacaklar" },
 ];
 
 const AYARLAR_HREF = "/panel/ayarlar";
@@ -35,15 +38,18 @@ function DisliIkonu({ className }: { className?: string }) {
 export default function PanelTabs() {
   const pathname = usePathname();
   const [mobilAcik, setMobilAcik] = useState(false);
+  const { user } = useAuth();
+  const yetki = useKullaniciYetkisi();
 
   const ayarlarAktif = pathname === AYARLAR_HREF;
+  const gorunurSekmeler = SEKMELER.filter((s) => moduleErisimiVarMi(yetki, s.modul, user?.email));
 
   return (
     <nav className="border-b border-gray-200 bg-white">
       {/* Masaüstü: yatay sekmeler + dişli ikonu */}
       <div className="mx-auto hidden max-w-5xl items-center justify-between px-4 sm:flex">
         <div className="flex gap-1 overflow-x-auto">
-          {SEKMELER.map((s) => {
+          {gorunurSekmeler.map((s) => {
             const active = pathname === s.href;
             return (
               <Link
@@ -84,7 +90,7 @@ export default function PanelTabs() {
             <svg viewBox="0 0 20 20" fill="none" className="h-5 w-5">
               <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
             </svg>
-            {SEKMELER.find((s) => s.href === pathname)?.label ||
+            {gorunurSekmeler.find((s) => s.href === pathname)?.label ||
               (ayarlarAktif ? "Ayarlar" : "Menü")}
           </button>
           <Link
@@ -98,7 +104,7 @@ export default function PanelTabs() {
 
         {mobilAcik && (
           <div className="flex flex-col border-t border-gray-100 pb-1">
-            {SEKMELER.map((s) => {
+            {gorunurSekmeler.map((s) => {
               const active = pathname === s.href;
               return (
                 <Link

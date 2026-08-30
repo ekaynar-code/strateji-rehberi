@@ -6,6 +6,7 @@ import Link from "next/link";
 import RequireAuth from "@/components/RequireAuth";
 import TopBar from "@/components/TopBar";
 import PanelTabs from "@/components/PanelTabs";
+import ModulErisimKorumasi from "@/components/ModulErisimKorumasi";
 import ManuelCiroBolumu from "@/components/ManuelCiroBolumu";
 import AksiyonListesi from "@/components/AksiyonListesi";
 import CeoOzetBolumu from "@/components/CeoOzetBolumu";
@@ -42,7 +43,9 @@ export default function GenelBakisPage() {
     <RequireAuth>
       <TopBar />
       <PanelTabs />
-      <GenelBakisContent />
+      <ModulErisimKorumasi modul="genel_bakis">
+        <GenelBakisContent />
+      </ModulErisimKorumasi>
     </RequireAuth>
   );
 }

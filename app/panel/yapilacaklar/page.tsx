@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import RequireAuth from "@/components/RequireAuth";
 import TopBar from "@/components/TopBar";
 import PanelTabs from "@/components/PanelTabs";
+import ModulErisimKorumasi from "@/components/ModulErisimKorumasi";
 import { useAuth } from "@/lib/AuthContext";
 import {
   subscribeTodos,
@@ -23,7 +24,9 @@ export default function YapilacaklarPage() {
     <RequireAuth>
       <TopBar />
       <PanelTabs />
-      <YapilacaklarContent />
+      <ModulErisimKorumasi modul="yapilacaklar">
+        <YapilacaklarContent />
+      </ModulErisimKorumasi>
     </RequireAuth>
   );
 }

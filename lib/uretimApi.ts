@@ -27,6 +27,9 @@ export interface UretimOzet {
       teslim: string;
       kalan_gun: number | null;
       tutar?: number;
+      alinan_odeme?: number;
+      kalan_bakiye?: number;
+      para_birimi?: "TRY" | "USD" | "EUR";
     }[];
   };
   guncelleme: string;

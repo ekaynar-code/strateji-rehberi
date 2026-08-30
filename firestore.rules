@@ -54,6 +54,15 @@ service cloud.firestore {
       allow read: if request.auth != null && request.auth.token.email == "yonetim@pimetri.com";
     }
 
+    // Kullanıcı modül yetkileri — herkes kendi kaydını okuyabilir/oluşturabilir
+    // (ilk giriş kaydı için), ama sadece yönetim hesabı yetkileri düzenleyebilir
+    // ve tüm kullanıcı listesini okuyabilir.
+    match /kullanici_yetkileri/{docId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && request.auth.token.email == "yonetim@pimetri.com";
+    }
+
     // Başka bir koleksiyona (örn. ihaleler) izin verilmedi —
     // ileride modül eklerken buraya yeni match blokları eklenecek.
   }

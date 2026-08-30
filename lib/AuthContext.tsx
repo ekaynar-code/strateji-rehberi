@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "./firebase";
+import { kullaniciKaydiniGarantiEt } from "./kullaniciYetkileri";
 
 interface AuthContextValue {
   user: User | null;
@@ -19,6 +20,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
       setLoading(false);
+      // Kullanıcı giriş yaptığında, ilk kez görülüyorsa en kısıtlı halde
+      // (hiçbir modüle erişimi olmadan) bir yetki kaydı oluşturulur.
+      if (firebaseUser?.email) {
+        kullaniciKaydiniGarantiEt(firebaseUser.email).catch(() => {});
+      }
     });
     return () => unsubscribe();
   }, []);

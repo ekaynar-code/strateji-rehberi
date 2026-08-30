@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import RequireAuth from "@/components/RequireAuth";
 import TopBar from "@/components/TopBar";
 import PanelTabs from "@/components/PanelTabs";
+import ModulErisimKorumasi from "@/components/ModulErisimKorumasi";
 import FuarForm from "@/components/FuarForm";
 import FuarCard from "@/components/FuarCard";
 import {
@@ -28,7 +29,9 @@ export default function FuarlarPage() {
     <RequireAuth>
       <TopBar />
       <PanelTabs />
-      <FuarlarContent />
+      <ModulErisimKorumasi modul="fuarlar">
+        <FuarlarContent />
+      </ModulErisimKorumasi>
     </RequireAuth>
   );
 }
