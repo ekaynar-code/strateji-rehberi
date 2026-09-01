@@ -34,7 +34,7 @@ export interface UretimOzet {
       para_birimi?: "TRY" | "USD" | "EUR";
     }[];
   };
-  sorunlar: {
+  sorunlar?: {
     acik: number;
     hat_ariza: number;
     siparis_sorun: number;

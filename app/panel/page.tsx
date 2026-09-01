@@ -296,7 +296,7 @@ function GenelBakisContent() {
         hedef,
         gerceklesenCiroTry,
         uretimOzet,
-        sorunlar: uretimOzet?.sorunlar.liste,
+        sorunlar: uretimOzet?.sorunlar?.liste,
       }),
     [distributorler, fuarlar, todos, onemliHaberler, hedef, gerceklesenCiroTry, uretimOzet]
   );
