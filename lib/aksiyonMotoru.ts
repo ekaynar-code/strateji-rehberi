@@ -3,7 +3,7 @@ import type { Fuar } from "./fuarlar";
 import type { Todo } from "./todos";
 import type { MusavirlikYazisi } from "./haberler";
 import type { Hedef } from "./hedefler";
-import type { UretimOzet } from "./uretimApi";
+import type { UretimOzet, Sorun } from "./uretimApi";
 import { kalanGun } from "./fuarlar";
 import { todoKalanGun } from "./todos";
 import { BOLGE_LABEL, type Bolge } from "./distributors";
@@ -28,6 +28,7 @@ interface AksiyonMotoruGirdisi {
   hedef: Hedef | null;
   gerceklesenCiroTry: number;
   uretimOzet?: UretimOzet | null;
+  sorunlar?: Sorun[];
 }
 
 /**
@@ -144,6 +145,29 @@ export function aksiyonlariHesapla(girdi: AksiyonMotoruGirdisi): AksiyonOnerisi[
       hedefSekme: "/panel",
     });
   }
+
+  // Kural 7 — açık arıza/sorun kayıtları: hat arızası acil, sipariş sorunu önemli
+  (girdi.sorunlar || [])
+    .filter((s) => s.durum === "acik")
+    .forEach((s) => {
+      if (s.tip === "hat_ariza") {
+        oneriler.push({
+          id: `ariza-${s.id}`,
+          seviye: "acil",
+          baslik: `Hat arızası — ${s.hatAdi || "üretim hattı"}`,
+          aciklama: s.aciklama || "Üretim hattında açık bir arıza kaydı var, üretim aksayabilir.",
+          hedefSekme: "/panel",
+        });
+      } else if (s.tip === "siparis_sorun") {
+        oneriler.push({
+          id: `siparis-sorun-${s.id}`,
+          seviye: "onemli",
+          baslik: `Sipariş sorunu — ${s.siparis_no || ""} ${s.musteri ? "· " + s.musteri : ""}`.trim(),
+          aciklama: s.aciklama || "Bu siparişte açık bir sorun kaydı var.",
+          hedefSekme: "/panel",
+        });
+      }
+    });
 
   // Önce seviyeye göre sırala (acil > önemli > bilgi)
   return oneriler.sort((a, b) => SEVIYE_SIRASI[a.seviye] - SEVIYE_SIRASI[b.seviye]);

@@ -18,25 +18,14 @@ function tarihDonemIcindeMi(tarih: string, hedef: Hedef): boolean {
  * ve aktif hedef döneminin içine düşen yeni siparişleri otomatik olarak
  * ekler.
  *
- * ÖNEMLİ — Para birimi: uretimfinal API'sinin apiOzet yanıtında sipariş
- * tutarının hangi para biriminde (TRY/USD/EUR) olduğunu belirten bir alan
- * yok. Yanlış para biriminde ciroya ekleme yapıp hedefi kur farkı kadar
- * (örn. USD tutarını TRY sanıp ~48 kat) yanlış şişirmemek için, bu otomasyon
- * PARA_BIRIMI_DOGRULANDI false olduğu sürece devre dışıdır. API tarafında
- * gerçek para birimi netleştirilip bu sabit true yapılana ve/veya API'ye
- * para_birimi alanı eklenene kadar hiçbir otomatik ekleme yapılmaz.
+ * Para birimi: API artık her sipariş için para_birimi alanını (TRY/USD/EUR)
+ * döndürüyor, bu yüzden kayıt doğru para biriminde ekleniyor.
  */
-const PARA_BIRIMI_DOGRULANDI = false;
-
 export async function yeniSiparisleriCiroyaEkle(
   ozet: UretimOzet,
   hedef: Hedef | null
 ): Promise<{ eklenen: number; atlananTutarsiz: number }> {
   if (!hedef) return { eklenen: 0, atlananTutarsiz: 0 };
-
-  if (!PARA_BIRIMI_DOGRULANDI) {
-    return { eklenen: 0, atlananTutarsiz: 0 };
-  }
 
   // API şu an sipariş bazlı liste döndürmüyorsa (sadece özet sayılar
   // geliyorsa), otomatik ekleme yapacak bir şey yok — sessizce çık.

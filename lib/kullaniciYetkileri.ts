@@ -34,6 +34,7 @@ export const GENEL_BAKIS_BOLUMU_LISTESI = [
   "ciro_hedefi",
   "personel_durumu",
   "siparis_uretim",
+  "ariza_sorunlar",
   "ekonomi_analizi",
   "aksiyon_listesi",
 ] as const;
@@ -44,6 +45,7 @@ export const GENEL_BAKIS_BOLUMU_LABEL: Record<GenelBakisBolumu, string> = {
   ciro_hedefi: "Ciro Hedefi",
   personel_durumu: "Personel Durumu",
   siparis_uretim: "Sipariş/Üretim Durumu",
+  ariza_sorunlar: "Arıza ve Sorunlar",
   ekonomi_analizi: "Ekonomi Analizi",
   aksiyon_listesi: "Aksiyon Listesi",
 };

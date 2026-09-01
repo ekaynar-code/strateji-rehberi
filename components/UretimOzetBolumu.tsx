@@ -63,6 +63,8 @@ export default function UretimOzetBolumu() {
 
   if (!ozet) return null;
 
+  const aktifSiparisSayisi = ozet.siparisler.uretimde + ozet.siparisler.bekleyen;
+
   return (
     <div className="mb-6">
       <button
@@ -81,10 +83,13 @@ export default function UretimOzetBolumu() {
         </div>
         <div className="flex items-center gap-3 text-xs text-gray-500">
           <span>
-            <span className="font-medium text-gray-900">{ozet.siparisler.aktif}</span> aktif sipariş
+            <span className="font-medium text-gray-900">{aktifSiparisSayisi}</span> aktif sipariş
           </span>
           {ozet.siparisler.geciken > 0 && (
             <span className="font-medium text-red-600">{ozet.siparisler.geciken} gecikiyor</span>
+          )}
+          {ozet.siparisler.sorun_var > 0 && (
+            <span className="font-medium text-red-600">{ozet.siparisler.sorun_var} sorunlu</span>
           )}
           <span>
             <span className="font-medium text-gray-900">{ozet.teklifler.bekliyor}</span> teklif bekliyor
@@ -106,8 +111,12 @@ export default function UretimOzetBolumu() {
               <div className="text-lg font-medium text-gray-900">{paraFormatla(ozet.teklifler.toplam_tutar)}</div>
             </div>
             <div>
-              <div className="text-xs text-gray-500">Aktif sipariş</div>
-              <div className="text-lg font-medium text-gray-900">{ozet.siparisler.aktif}</div>
+              <div className="text-xs text-gray-500">Üretimde</div>
+              <div className="text-lg font-medium text-gray-900">{ozet.siparisler.uretimde}</div>
+            </div>
+            <div>
+              <div className="text-xs text-gray-500">Üretim bekliyor</div>
+              <div className="text-lg font-medium text-gray-900">{ozet.siparisler.bekleyen}</div>
             </div>
             <div>
               <div className="text-xs text-gray-500">Geciken</div>
@@ -115,13 +124,13 @@ export default function UretimOzetBolumu() {
                 {ozet.siparisler.geciken}
               </div>
             </div>
-          </div>
-
-          {ozet.siparisler.yedi_gun !== undefined && ozet.siparisler.yedi_gun > 0 && (
-            <div className="mb-3 text-xs text-amber-600">
-              {ozet.siparisler.yedi_gun} sipariş önümüzdeki 7 gün içinde teslim edilecek.
+            <div>
+              <div className="text-xs text-gray-500">Sorunlu sipariş</div>
+              <div className={`text-lg font-medium ${ozet.siparisler.sorun_var > 0 ? "text-red-600" : "text-gray-900"}`}>
+                {ozet.siparisler.sorun_var}
+              </div>
             </div>
-          )}
+          </div>
 
           {ozet.siparisler.liste && ozet.siparisler.liste.length > 0 && (
             <div className="mb-3">
@@ -131,6 +140,11 @@ export default function UretimOzetBolumu() {
                   <div key={s.siparis_no} className="flex items-center justify-between text-xs">
                     <span className="text-gray-700">
                       {s.siparis_no} · {s.musteri}
+                      {s.durum === "sorun_var" && (
+                        <span className="ml-1.5 rounded-full bg-red-100 px-1.5 py-0.5 text-[10px] font-medium text-red-700">
+                          sorunlu
+                        </span>
+                      )}
                     </span>
                     <span
                       className={
@@ -156,33 +170,49 @@ export default function UretimOzetBolumu() {
           {hat && (hat.kanat.length > 0 || hat.kasa.length > 0) && (
             <div className="border-t border-gray-100 pt-3">
               <div className="mb-1.5 text-xs font-medium text-gray-500">Üretim hattı</div>
-              <div className="flex flex-col gap-1.5">
-                {hat.kanat.map((k) => (
-                  <div key={`kanat-${k.siparis_no}`} className="text-xs">
-                    <div className="mb-0.5 flex items-center justify-between text-gray-600">
-                      <span>
-                        {k.siparis_no} · {k.musteri} (kanat)
-                      </span>
-                      <span>{k.asama}</span>
-                    </div>
-                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
-                      <div className="h-full rounded-full bg-brand-400" style={{ width: `${k.yuzde}%` }} />
-                    </div>
+              <div className="flex flex-col gap-2">
+                <div>
+                  <div className="mb-1 text-[11px] font-medium text-gray-400">Kanat</div>
+                  <div className="flex flex-col gap-1">
+                    {hat.kanat
+                      .filter((a) => a.siparisler.length > 0 || a.arizali)
+                      .map((a) => (
+                        <div
+                          key={`kanat-${a.index}`}
+                          className={`flex items-center justify-between rounded-md px-2 py-1 text-xs ${
+                            a.arizali ? "bg-red-50" : "bg-gray-50"
+                          }`}
+                        >
+                          <span className={a.arizali ? "font-medium text-red-700" : "text-gray-600"}>
+                            {a.asama}
+                            {a.arizali && " ⚠ arızalı"}
+                          </span>
+                          <span className="text-gray-400">{a.siparisler.length} sipariş</span>
+                        </div>
+                      ))}
                   </div>
-                ))}
-                {hat.kasa.map((k) => (
-                  <div key={`kasa-${k.siparis_no}`} className="text-xs">
-                    <div className="mb-0.5 flex items-center justify-between text-gray-600">
-                      <span>
-                        {k.siparis_no} · {k.musteri} (kasa)
-                      </span>
-                      <span>{k.asama}</span>
-                    </div>
-                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
-                      <div className="h-full rounded-full bg-gray-400" style={{ width: `${k.yuzde}%` }} />
-                    </div>
+                </div>
+                <div>
+                  <div className="mb-1 text-[11px] font-medium text-gray-400">Kasa</div>
+                  <div className="flex flex-col gap-1">
+                    {hat.kasa
+                      .filter((a) => a.siparisler.length > 0 || a.arizali)
+                      .map((a) => (
+                        <div
+                          key={`kasa-${a.index}`}
+                          className={`flex items-center justify-between rounded-md px-2 py-1 text-xs ${
+                            a.arizali ? "bg-red-50" : "bg-gray-50"
+                          }`}
+                        >
+                          <span className={a.arizali ? "font-medium text-red-700" : "text-gray-600"}>
+                            {a.asama}
+                            {a.arizali && " ⚠ arızalı"}
+                          </span>
+                          <span className="text-gray-400">{a.siparisler.length} sipariş</span>
+                        </div>
+                      ))}
                   </div>
-                ))}
+                </div>
               </div>
             </div>
           )}
