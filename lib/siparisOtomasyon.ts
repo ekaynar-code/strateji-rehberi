@@ -29,7 +29,8 @@ export async function yeniSiparisleriCiroyaEkle(
 
   // API şu an sipariş bazlı liste döndürmüyorsa (sadece özet sayılar
   // geliyorsa), otomatik ekleme yapacak bir şey yok — sessizce çık.
-  if (!ozet.siparisler.liste || ozet.siparisler.liste.length === 0) {
+  const liste = ozet.siparisler?.liste;
+  if (!liste || liste.length === 0) {
     return { eklenen: 0, atlananTutarsiz: 0 };
   }
 
@@ -46,7 +47,7 @@ export async function yeniSiparisleriCiroyaEkle(
   let eklenen = 0;
   let atlananTutarsiz = 0;
 
-  for (const siparis of ozet.siparisler.liste) {
+  for (const siparis of liste) {
     if (eklenmisSiparisNolar.has(siparis.siparis_no)) continue;
 
     if (siparis.teslim && siparis.teslim !== "-" && !tarihDonemIcindeMi(siparis.teslim, hedef)) {

@@ -63,7 +63,22 @@ export default function UretimOzetBolumu() {
 
   if (!ozet) return null;
 
-  const aktifSiparisSayisi = ozet.siparisler.uretimde + ozet.siparisler.bekleyen;
+  // API yanıtının gerçek yapısı beklenenden farklı gelebiliyor — her alt
+  // nesneye erişimde güvenli varsayılanlar kullanıyoruz ki sayfa hiçbir
+  // koşulda çökmesin, eksik veri varsa sadece "—" veya 0 gösterilsin.
+  const siparisler = ozet.siparisler;
+  const teklifler = ozet.teklifler;
+  const liste = siparisler?.liste ?? [];
+
+  const uretimde = siparisler?.uretimde ?? 0;
+  const bekleyen = siparisler?.bekleyen ?? 0;
+  const geciken = siparisler?.geciken ?? 0;
+  const sorunVar = siparisler?.sorun_var ?? 0;
+  const teklifBekliyor = teklifler?.bekliyor ?? 0;
+  const teklifToplam = teklifler?.toplam ?? 0;
+  const teklifTutar = teklifler?.toplam_tutar ?? 0;
+
+  const aktifSiparisSayisi = uretimde + bekleyen;
 
   return (
     <div className="mb-6">
@@ -85,14 +100,10 @@ export default function UretimOzetBolumu() {
           <span>
             <span className="font-medium text-gray-900">{aktifSiparisSayisi}</span> aktif sipariş
           </span>
-          {ozet.siparisler.geciken > 0 && (
-            <span className="font-medium text-red-600">{ozet.siparisler.geciken} gecikiyor</span>
-          )}
-          {ozet.siparisler.sorun_var > 0 && (
-            <span className="font-medium text-red-600">{ozet.siparisler.sorun_var} sorunlu</span>
-          )}
+          {geciken > 0 && <span className="font-medium text-red-600">{geciken} gecikiyor</span>}
+          {sorunVar > 0 && <span className="font-medium text-red-600">{sorunVar} sorunlu</span>}
           <span>
-            <span className="font-medium text-gray-900">{ozet.teklifler.bekliyor}</span> teklif bekliyor
+            <span className="font-medium text-gray-900">{teklifBekliyor}</span> teklif bekliyor
           </span>
         </div>
       </button>
@@ -104,39 +115,39 @@ export default function UretimOzetBolumu() {
           <div className="mb-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
             <div>
               <div className="text-xs text-gray-500">Toplam teklif</div>
-              <div className="text-lg font-medium text-gray-900">{ozet.teklifler.toplam}</div>
+              <div className="text-lg font-medium text-gray-900">{teklifToplam}</div>
             </div>
             <div>
               <div className="text-xs text-gray-500">Teklif tutarı</div>
-              <div className="text-lg font-medium text-gray-900">{paraFormatla(ozet.teklifler.toplam_tutar)}</div>
+              <div className="text-lg font-medium text-gray-900">{paraFormatla(teklifTutar)}</div>
             </div>
             <div>
               <div className="text-xs text-gray-500">Üretimde</div>
-              <div className="text-lg font-medium text-gray-900">{ozet.siparisler.uretimde}</div>
+              <div className="text-lg font-medium text-gray-900">{uretimde}</div>
             </div>
             <div>
               <div className="text-xs text-gray-500">Üretim bekliyor</div>
-              <div className="text-lg font-medium text-gray-900">{ozet.siparisler.bekleyen}</div>
+              <div className="text-lg font-medium text-gray-900">{bekleyen}</div>
             </div>
             <div>
               <div className="text-xs text-gray-500">Geciken</div>
-              <div className={`text-lg font-medium ${ozet.siparisler.geciken > 0 ? "text-red-600" : "text-gray-900"}`}>
-                {ozet.siparisler.geciken}
+              <div className={`text-lg font-medium ${geciken > 0 ? "text-red-600" : "text-gray-900"}`}>
+                {geciken}
               </div>
             </div>
             <div>
               <div className="text-xs text-gray-500">Sorunlu sipariş</div>
-              <div className={`text-lg font-medium ${ozet.siparisler.sorun_var > 0 ? "text-red-600" : "text-gray-900"}`}>
-                {ozet.siparisler.sorun_var}
+              <div className={`text-lg font-medium ${sorunVar > 0 ? "text-red-600" : "text-gray-900"}`}>
+                {sorunVar}
               </div>
             </div>
           </div>
 
-          {ozet.siparisler.liste && ozet.siparisler.liste.length > 0 && (
+          {liste.length > 0 && (
             <div className="mb-3">
               <div className="mb-1.5 text-xs font-medium text-gray-500">Aktif siparişler</div>
               <div className="flex flex-col gap-1">
-                {ozet.siparisler.liste.slice(0, 8).map((s) => (
+                {liste.slice(0, 8).map((s) => (
                   <div key={s.siparis_no} className="flex items-center justify-between text-xs">
                     <span className="text-gray-700">
                       {s.siparis_no} · {s.musteri}
@@ -167,52 +178,56 @@ export default function UretimOzetBolumu() {
             </div>
           )}
 
-          {hat && (hat.kanat.length > 0 || hat.kasa.length > 0) && (
+          {hat && ((hat.kanat && hat.kanat.length > 0) || (hat.kasa && hat.kasa.length > 0)) && (
             <div className="border-t border-gray-100 pt-3">
               <div className="mb-1.5 text-xs font-medium text-gray-500">Üretim hattı</div>
               <div className="flex flex-col gap-2">
-                <div>
-                  <div className="mb-1 text-[11px] font-medium text-gray-400">Kanat</div>
-                  <div className="flex flex-col gap-1">
-                    {hat.kanat
-                      .filter((a) => a.siparisler.length > 0 || a.arizali)
-                      .map((a) => (
-                        <div
-                          key={`kanat-${a.index}`}
-                          className={`flex items-center justify-between rounded-md px-2 py-1 text-xs ${
-                            a.arizali ? "bg-red-50" : "bg-gray-50"
-                          }`}
-                        >
-                          <span className={a.arizali ? "font-medium text-red-700" : "text-gray-600"}>
-                            {a.asama}
-                            {a.arizali && " ⚠ arızalı"}
-                          </span>
-                          <span className="text-gray-400">{a.siparisler.length} sipariş</span>
-                        </div>
-                      ))}
+                {Array.isArray(hat.kanat) && hat.kanat.length > 0 && (
+                  <div>
+                    <div className="mb-1 text-[11px] font-medium text-gray-400">Kanat</div>
+                    <div className="flex flex-col gap-1">
+                      {hat.kanat
+                        .filter((a) => (a.siparisler && a.siparisler.length > 0) || a.arizali)
+                        .map((a) => (
+                          <div
+                            key={`kanat-${a.index}`}
+                            className={`flex items-center justify-between rounded-md px-2 py-1 text-xs ${
+                              a.arizali ? "bg-red-50" : "bg-gray-50"
+                            }`}
+                          >
+                            <span className={a.arizali ? "font-medium text-red-700" : "text-gray-600"}>
+                              {a.asama}
+                              {a.arizali && " ⚠ arızalı"}
+                            </span>
+                            <span className="text-gray-400">{(a.siparisler || []).length} sipariş</span>
+                          </div>
+                        ))}
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <div className="mb-1 text-[11px] font-medium text-gray-400">Kasa</div>
-                  <div className="flex flex-col gap-1">
-                    {hat.kasa
-                      .filter((a) => a.siparisler.length > 0 || a.arizali)
-                      .map((a) => (
-                        <div
-                          key={`kasa-${a.index}`}
-                          className={`flex items-center justify-between rounded-md px-2 py-1 text-xs ${
-                            a.arizali ? "bg-red-50" : "bg-gray-50"
-                          }`}
-                        >
-                          <span className={a.arizali ? "font-medium text-red-700" : "text-gray-600"}>
-                            {a.asama}
-                            {a.arizali && " ⚠ arızalı"}
-                          </span>
-                          <span className="text-gray-400">{a.siparisler.length} sipariş</span>
-                        </div>
-                      ))}
+                )}
+                {Array.isArray(hat.kasa) && hat.kasa.length > 0 && (
+                  <div>
+                    <div className="mb-1 text-[11px] font-medium text-gray-400">Kasa</div>
+                    <div className="flex flex-col gap-1">
+                      {hat.kasa
+                        .filter((a) => (a.siparisler && a.siparisler.length > 0) || a.arizali)
+                        .map((a) => (
+                          <div
+                            key={`kasa-${a.index}`}
+                            className={`flex items-center justify-between rounded-md px-2 py-1 text-xs ${
+                              a.arizali ? "bg-red-50" : "bg-gray-50"
+                            }`}
+                          >
+                            <span className={a.arizali ? "font-medium text-red-700" : "text-gray-600"}>
+                              {a.asama}
+                              {a.arizali && " ⚠ arızalı"}
+                            </span>
+                            <span className="text-gray-400">{(a.siparisler || []).length} sipariş</span>
+                          </div>
+                        ))}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           )}

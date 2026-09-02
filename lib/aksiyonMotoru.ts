@@ -135,7 +135,7 @@ export function aksiyonlariHesapla(girdi: AksiyonMotoruGirdisi): AksiyonOnerisi[
   }
 
   // Kural 6 — geciken siparişler
-  if (girdi.uretimOzet && girdi.uretimOzet.siparisler.geciken > 0) {
+  if (girdi.uretimOzet?.siparisler && girdi.uretimOzet.siparisler.geciken > 0) {
     const gecikenSayisi = girdi.uretimOzet.siparisler.geciken;
     oneriler.push({
       id: "siparis-geciken",

@@ -8,14 +8,14 @@ function getApiKey(): string | undefined {
 }
 
 export interface UretimOzet {
-  teklifler: {
+  teklifler?: {
     toplam: number;
     bekliyor: number;
     siparis: number;
     tamamlandi: number;
     toplam_tutar: number;
   };
-  siparisler: {
+  siparisler?: {
     toplam: number;
     uretimde: number;
     bekleyen: number;
