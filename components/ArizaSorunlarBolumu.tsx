@@ -30,7 +30,17 @@ export default function ArizaSorunlarBolumu() {
 
   function yukle() {
     sorunlarGetir()
-      .then((s) => setSorunlar(s))
+      .then((s) => {
+        // API'nin gerçek sözleşmesi: düz bir dizi döner. Ama API key hatalı/
+        // eksikse ({hata: "..."} gibi bir nesne) ya da başka bir sebeple
+        // beklenmedik bir yanıt gelirse, dizi olmayan bir değeri asla
+        // state'e yazmıyoruz — böylece .filter() hiçbir zaman patlamaz.
+        if (!Array.isArray(s)) {
+          setHata(true);
+          return;
+        }
+        setSorunlar(s);
+      })
       .catch(() => setHata(true))
       .finally(() => setYukleniyor(false));
   }

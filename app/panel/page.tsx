@@ -13,6 +13,7 @@ import CeoOzetBolumu from "@/components/CeoOzetBolumu";
 import UretimOzetBolumu from "@/components/UretimOzetBolumu";
 import ArizaSorunlarBolumu from "@/components/ArizaSorunlarBolumu";
 import EkonomiOzetBolumu from "@/components/EkonomiOzetBolumu";
+import BolumHataSiniri from "@/components/BolumHataSiniri";
 import {
   subscribeDistributors,
   type Distributor,
@@ -312,15 +313,35 @@ function GenelBakisContent() {
         <p className="text-sm text-gray-500">Yükleniyor…</p>
       ) : (
         <>
-          {bolumGorunurMu("aksiyon_listesi") && <AksiyonListesi oneriler={aksiyonOnerileri} />}
+          {bolumGorunurMu("aksiyon_listesi") && (
+            <BolumHataSiniri bolumAdi="Aksiyon listesi">
+              <AksiyonListesi oneriler={aksiyonOnerileri} />
+            </BolumHataSiniri>
+          )}
 
-          {bolumGorunurMu("personel_durumu") && <CeoOzetBolumu />}
+          {bolumGorunurMu("personel_durumu") && (
+            <BolumHataSiniri bolumAdi="Personel durumu">
+              <CeoOzetBolumu />
+            </BolumHataSiniri>
+          )}
 
-          {bolumGorunurMu("siparis_uretim") && <UretimOzetBolumu />}
+          {bolumGorunurMu("siparis_uretim") && (
+            <BolumHataSiniri bolumAdi="Sipariş ve üretim durumu">
+              <UretimOzetBolumu />
+            </BolumHataSiniri>
+          )}
 
-          {bolumGorunurMu("ariza_sorunlar") && <ArizaSorunlarBolumu />}
+          {bolumGorunurMu("ariza_sorunlar") && (
+            <BolumHataSiniri bolumAdi="Arıza ve sorunlar">
+              <ArizaSorunlarBolumu />
+            </BolumHataSiniri>
+          )}
 
-          {bolumGorunurMu("ekonomi_analizi") && <EkonomiOzetBolumu />}
+          {bolumGorunurMu("ekonomi_analizi") && (
+            <BolumHataSiniri bolumAdi="Ekonomi analizi">
+              <EkonomiOzetBolumu />
+            </BolumHataSiniri>
+          )}
 
           {/* Ciro hedefi (dönem bazlı) */}
           {bolumGorunurMu("ciro_hedefi") && (
