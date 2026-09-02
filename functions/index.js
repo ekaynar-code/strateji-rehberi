@@ -407,19 +407,23 @@ exports.apiEkonomi = onRequest(
 // ---------------------------------------------------------------------------
 
 const APPS_SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbyEA4vkYbqlCMoFIR39JEMgMZGiXmr5Lxy9YVHKZN6d3x02DwPUbNdJdJIS7g_EFvK_Ig/exec";
+  "https://script.google.com/macros/s/AKfycbxIY4U9PfXJXyubfiESm8AMqie1Ya0iukCqtisB2JVkMoLKsUKmeOXDSHvDJrsPzLUtwQ/exec";
 
-function fetchGet(url) {
+function fetchGet(url, redirectSayisi = 0) {
   return new Promise((resolve, reject) => {
     https
-      .get(url, (res) => {
+      .get(url, { headers: { "User-Agent": "Mozilla/5.0 (compatible; StratejiRehberi/1.0)" } }, (res) => {
         if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-          fetchGet(res.headers.location).then(resolve).catch(reject);
+          if (redirectSayisi >= 5) {
+            resolve({ statusCode: res.statusCode, body: "", sonUrl: res.headers.location });
+            return;
+          }
+          fetchGet(res.headers.location, redirectSayisi + 1).then(resolve).catch(reject);
           return;
         }
         let data = "";
         res.on("data", (chunk) => (data += chunk));
-        res.on("end", () => resolve({ statusCode: res.statusCode, body: data }));
+        res.on("end", () => resolve({ statusCode: res.statusCode, body: data, sonUrl: url }));
       })
       .on("error", reject);
   });
@@ -486,7 +490,7 @@ exports.apiUretimProxy = onRequest(
       try {
         res.json(JSON.parse(body));
       } catch {
-        res.send(body);
+        res.status(502).json({ error: "Apps Script'ten geçerli JSON alınamadı" });
       }
     } catch (err) {
       res.status(500).json({ error: "Üretim API proxy hatası", detail: String(err) });
