@@ -1,7 +1,7 @@
-// Apps Script Web App URL'si — uretimfinal projesindeki tüm üretim/sipariş/
-// arıza verisi artık bu tek adresten, ?action=... parametresiyle geliyor.
-const BASE_URL =
-  "https://script.google.com/macros/s/AKfycbyEA4vkYbqlCMoFIR39JEMgMZGiXmr5Lxy9YVHKZN6d3x02DwPUbNdJdJIS7g_EFvK_Ig/exec";
+// Kendi Cloud Function proxy'miz — Apps Script'e CORS olmadan erişebilmek
+// için tarayıcı buraya istek atıyor, proxy arka planda Apps Script'i çağırıp
+// yanıtı CORS header'ıyla geri döndürüyor.
+const BASE_URL = "https://europe-west1-strateji-rehberi.cloudfunctions.net/apiUretimProxy";
 
 function getApiKey(): string | undefined {
   return process.env.NEXT_PUBLIC_URETIM_API_KEY;
@@ -116,7 +116,7 @@ export async function sorunCozuldu(id: string, cozumNotu: string): Promise<void>
 
   const res = await fetch(BASE_URL, {
     method: "POST",
-    headers: { "Content-Type": "text/plain" },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ key, action: "sorun_guncelle", id, cozumNotu }),
   });
   if (!res.ok) throw new Error(`Sorun güncelleme isteği başarısız: ${res.status}`);

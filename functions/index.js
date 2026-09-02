@@ -398,3 +398,98 @@ exports.apiEkonomi = onRequest(
     }
   }
 );
+
+// ---------------------------------------------------------------------------
+// Üretim API Proxy — uretimfinal projesindeki Apps Script Web App'e CORS
+// olmadan erişebilmek için, tarayıcı bizim bu Cloud Function'ımıza istek
+// atıyor, biz de sunucu tarafında (CORS kısıtlaması olmayan ortamda) Apps
+// Script'i çağırıp yanıtı CORS header'ı ekleyerek geri döndürüyoruz.
+// ---------------------------------------------------------------------------
+
+const APPS_SCRIPT_URL =
+  "https://script.google.com/macros/s/AKfycbyEA4vkYbqlCMoFIR39JEMgMZGiXmr5Lxy9YVHKZN6d3x02DwPUbNdJdJIS7g_EFvK_Ig/exec";
+
+function fetchGet(url) {
+  return new Promise((resolve, reject) => {
+    https
+      .get(url, (res) => {
+        if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+          fetchGet(res.headers.location).then(resolve).catch(reject);
+          return;
+        }
+        let data = "";
+        res.on("data", (chunk) => (data += chunk));
+        res.on("end", () => resolve({ statusCode: res.statusCode, body: data }));
+      })
+      .on("error", reject);
+  });
+}
+
+function postJson(url, bodyObj) {
+  return new Promise((resolve, reject) => {
+    const bodyStr = JSON.stringify(bodyObj);
+    const parsedUrl = new URL(url);
+    const req = https.request(
+      {
+        hostname: parsedUrl.hostname,
+        path: parsedUrl.pathname + parsedUrl.search,
+        method: "POST",
+        headers: {
+          "Content-Type": "text/plain",
+          "Content-Length": Buffer.byteLength(bodyStr),
+        },
+      },
+      (res) => {
+        // Apps Script POST isteklerinde de yönlendirme (302) yapabilir.
+        if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+          fetchGet(res.headers.location).then(resolve).catch(reject);
+          return;
+        }
+        let data = "";
+        res.on("data", (chunk) => (data += chunk));
+        res.on("end", () => resolve({ statusCode: res.statusCode, body: data }));
+      }
+    );
+    req.on("error", reject);
+    req.write(bodyStr);
+    req.end();
+  });
+}
+
+/**
+ * HTTP endpoint: ?action=ozet|hat|sorunlar&key=... (GET) ile çağrılır, ya da
+ * POST { key, action: "sorun_guncelle", id, cozumNotu } ile. Bu fonksiyon
+ * sadece Apps Script'e olan isteği CORS-güvenli şekilde aracılık eder —
+ * kendi API key doğrulamasını yapmaz, key'i olduğu gibi Apps Script'e iletir
+ * (gerçek doğrulama orada yapılıyor).
+ */
+exports.apiUretimProxy = onRequest(
+  { cors: true, region: "europe-west1", timeoutSeconds: 30 },
+  async (req, res) => {
+    try {
+      if (req.method === "POST") {
+        const { statusCode, body } = await postJson(APPS_SCRIPT_URL, req.body);
+        res.status(statusCode || 200);
+        try {
+          res.json(JSON.parse(body));
+        } catch {
+          res.send(body);
+        }
+        return;
+      }
+
+      // GET — query parametrelerini olduğu gibi Apps Script'e iletiyoruz.
+      const params = new URLSearchParams(req.query).toString();
+      const url = `${APPS_SCRIPT_URL}?${params}`;
+      const { statusCode, body } = await fetchGet(url);
+      res.status(statusCode || 200);
+      try {
+        res.json(JSON.parse(body));
+      } catch {
+        res.send(body);
+      }
+    } catch (err) {
+      res.status(500).json({ error: "Üretim API proxy hatası", detail: String(err) });
+    }
+  }
+);
